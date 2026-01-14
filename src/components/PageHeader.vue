@@ -1,19 +1,27 @@
 <template>
   <header class="header">
-    <div class="header-container">
-      <div class="header-left">
-        <h1 class="site-title">夏铭副教授</h1>
-        <p class="site-subtitle">南京工业大学化工学院 · 材料化学工程国家重点实验室</p>
+    <!-- Logo横幅 -->
+    <div class="logo-banner">
+      <img src="/logo.png" alt="Logo" class="logo-banner-image" />
+    </div>
+
+    <!-- 标题和导航区域 -->
+    <div class="header-content">
+      <div class="header-container">
+        <div class="header-left">
+          <h1 class="site-title">夏铭副教授</h1>
+          <p class="site-subtitle">南京工业大学化工学院 · 材料化学工程国家重点实验室</p>
+        </div>
+        <nav class="nav">
+          <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">首页</a>
+          <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">组内成员</a>
+          <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">科研成果</a>
+          <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>
+          <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">项目经费</a>
+          <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">电子相册</a>
+          <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">招贤纳士</a>
+        </nav>
       </div>
-      <nav class="nav">
-        <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">首页</a>
-        <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">组内成员</a>
-        <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">科研成果</a>
-        <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>
-        <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">项目经费</a>
-        <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">电子相册</a>
-        <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">招贤纳士</a>
-      </nav>
     </div>
   </header>
 </template>
@@ -48,10 +56,35 @@ onMounted(() => {
 
 <style scoped>
 .header {
+  background: white;
+  box-shadow: var(--shadow-md);
+}
+
+/* Logo横幅 - 核心修改：添加水平居中样式 */
+.logo-banner {
+  max-width: 1200px;
+  background: white;
+  display: flex;
+  justify-content: center; /* 让内部图片水平居中 */
+  align-items: center;     /* 让内部图片垂直居中 */
+  padding: 0;
+  /* 以下是新增的居中核心样式 */
+  margin: 0 auto;          /* 关键：让容器自身水平居中 */
+  width: 100%;             /* 让容器先占满父级宽度，再通过max-width限制最大宽度 */
+}
+
+.logo-banner-image {
+  max-width: 100%;         /* 修改：图片宽度适配容器，避免超出1200px */
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+/* 标题和导航区域 */
+.header-content {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
   color: white;
   padding: var(--spacing-md) 0;
-  box-shadow: var(--shadow-md);
 }
 
 .header-container {

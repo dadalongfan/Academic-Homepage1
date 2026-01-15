@@ -26,41 +26,8 @@
       </button>
     </div>
 
-    <!-- 左右分栏区域：最新动态 + 个人简介大块 -->
-    <div class="content-split-section">
-      <!-- 左侧：最新动态滚动栏 -->
-      <div class="news-sidebar">
-        <div class="news-header">
-          <h3 class="news-title">📰 组内新闻</h3>
-        </div>
-        <div
-          class="news-scroll-container"
-          @mouseenter="pauseScroll"
-          @mouseleave="resumeScroll"
-        >
-          <div class="news-scroll-content" :class="{ 'paused': isPaused }">
-            <div
-              v-for="(news, index) in newsList"
-              :key="index"
-              class="news-item"
-            >
-              <div class="news-date">{{ news.date }}</div>
-              <div class="news-content">{{ news.content }}</div>
-            </div>
-            <!-- 重复一遍实现无缝循环 -->
-            <div
-              v-for="(news, index) in newsList"
-              :key="'duplicate-' + index"
-              class="news-item"
-            >
-              <div class="news-date">{{ news.date }}</div>
-              <div class="news-content">{{ news.content }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 右侧：个人简介大块（合并为一个卡片） -->
+    <!-- 个人简介大块 -->
+    <div class="content-wrapper">
       <div class="section-card bio-card">
         <!-- 头像+职称信息区域 -->
         <div class="bio-header">
@@ -223,31 +190,6 @@ onMounted(() => {
 onUnmounted(() => {
   pauseSlideshow()
 })
-
-// 组内新闻数据
-const newsList = ref([
-  { date: '2024-12', content: '课题组迎来2025级新成员高锟俣、储金科加入' },
-  { date: '2024-11', content: '夏铭老师参加第三届能源绿色转化与碳减排国际论坛并作分会主席报告' },
-  { date: '2024-10', content: '课题组论文在AIChE Journal期刊发表，影响因子3.8' },
-  { date: '2024-09', content: '祝贺！课题组获得国家自然科学基金面上项目资助' },
-  { date: '2024-08', content: '课题组举办夏季学术研讨会，汇报最新研究进展' },
-  { date: '2024-07', content: '指导学生荣获第十八届全国大学生化工设计竞赛国家级特等奖' },
-  { date: '2024-06', content: '实验室购置新型催化剂表征设备，科研平台进一步升级' },
-  { date: '2024-05', content: '2024届毕业生游晨曦、赵伟等顺利签约知名企业' },
-  { date: '2024-04', content: '夏铭老师受邀参加中英C1过程催化化学和工艺研讨会' },
-  { date: '2024-03', content: '课题组在国际催化大会作口头报告，获广泛关注' }
-])
-
-// 滚动控制
-const isPaused = ref(false)
-
-const pauseScroll = () => {
-  isPaused.value = true
-}
-
-const resumeScroll = () => {
-  isPaused.value = false
-}
 </script>
 
 <style scoped>
@@ -422,97 +364,10 @@ const resumeScroll = () => {
   opacity: 0.9;
 }
 
-/* 左右分栏区域 */
-.content-split-section {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: var(--spacing-md);
+.content-wrapper {
   margin-bottom: var(--spacing-lg);
-  align-items: start;
 }
 
-/* 左侧：最新动态滚动栏 */
-.news-sidebar {
-  background: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  position: sticky;
-  top: 20px;
-}
-
-.news-sidebar:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.news-header {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  padding: var(--spacing-md);
-  text-align: center;
-}
-
-.news-title {
-  font-size: 18px;
-  color: white;
-  margin: 0;
-  font-weight: 600;
-}
-
-.news-scroll-container {
-  height: 1200px;
-  overflow: hidden;
-  background: var(--bg-light);
-  position: relative;
-}
-
-.news-scroll-content {
-  animation: scroll-up 30s linear infinite;
-}
-
-.news-scroll-content.paused {
-  animation-play-state: paused;
-}
-
-@keyframes scroll-up {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-50%);
-  }
-}
-
-.news-item {
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
-  background: white;
-  transition: all 0.3s ease;
-}
-
-.news-item:hover {
-  background: var(--bg-light);
-  transform: translateX(5px);
-}
-
-.news-date {
-  font-size: 12px;
-  color: var(--accent-color);
-  font-weight: 600;
-  margin-bottom: 6px;
-  display: inline-block;
-  padding: 2px 8px;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: var(--radius-sm);
-}
-
-.news-content {
-  font-size: 14px;
-  color: var(--text-primary);
-  line-height: 1.6;
-}
-
-/* 右侧：个人简介大块 */
 .bio-card {
   padding: var(--spacing-lg);
 }
@@ -633,27 +488,9 @@ const resumeScroll = () => {
 }
 
 /* 响应式设计 */
-@media (max-width: 1200px) {
-  .content-split-section {
-    grid-template-columns: 280px 1fr;
-  }
-}
-
 @media (max-width: 968px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .content-split-section {
-    grid-template-columns: 1fr;
-  }
-
-  .news-sidebar {
-    position: static;
-  }
-
-  .news-scroll-container {
-    height: 400px;
   }
 
   .bio-header {

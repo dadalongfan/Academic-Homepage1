@@ -5,7 +5,7 @@
     <!-- 欢迎标语 -->
     <div class="hero-banner">
       <div class="banner-content">
-        <h2>欢迎加入夏铭副教授课题组</h2>
+        <h2>欢迎加入介质过程强化团队</h2>
         <p>探索催化反应工程的奥秘，共创绿色化工的未来</p>
       </div>
     </div>

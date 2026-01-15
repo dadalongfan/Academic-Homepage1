@@ -14,6 +14,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        news: resolve(__dirname, 'news.html'),
         members: resolve(__dirname, 'members.html'),
         publications: resolve(__dirname, 'publications.html'),
         partners: resolve(__dirname, 'partners.html'),

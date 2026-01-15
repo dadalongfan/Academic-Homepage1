@@ -9,17 +9,18 @@
     <div class="header-content">
       <div class="header-container">
         <div class="header-left">
-          <h1 class="site-title">夏铭副教授</h1>
+          <h1 class="site-title">介质过程强化团队</h1>
           <p class="site-subtitle">南京工业大学化工学院 · 材料化学工程国家重点实验室</p>
         </div>
         <nav class="nav">
-          <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">首页</a>
-          <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">组内成员</a>
-          <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">科研成果</a>
-          <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>
-          <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">项目经费</a>
-          <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">电子相册</a>
-          <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">招贤纳士</a>
+          <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">首页Homepage</a>
+          <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">新闻News</a>
+          <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">成员People</a>
+          <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">研发R&D</a>
+          <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>-->
+          <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">项目Projects</a>
+          <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">相片Gallery</a>
+          <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">招贤Recruit</a>
         </nav>
       </div>
     </div>
@@ -38,6 +39,8 @@ onMounted(() => {
   // 根据路径判断当前页面
   if (path === '/' || path === '/index.html' || path.endsWith('/index.html')) {
     currentPage.value = 'home'
+  } else if (path.includes('news.html')) {
+    currentPage.value = 'news'
   } else if (path.includes('members.html')) {
     currentPage.value = 'members'
   } else if (path.includes('publications.html')) {
@@ -102,7 +105,7 @@ onMounted(() => {
 
 .site-title {
   font-family: var(--font-serif);
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   margin-bottom: 8px;
   letter-spacing: 1px;
@@ -125,7 +128,7 @@ onMounted(() => {
   text-decoration: none;
   padding: 8px 16px;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 17px;
   transition: all 0.3s ease;
   white-space: nowrap;
 }

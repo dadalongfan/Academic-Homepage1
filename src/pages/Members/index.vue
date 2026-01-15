@@ -15,9 +15,67 @@
           <p class="teacher-desc">南京工业大学化工学院</p>
           <p class="teacher-desc">材料化学工程国家重点实验室</p>
           <div class="teacher-achievements">
-            <el-tag type="success">发表论文50余篇</el-tag>
-            <el-tag type="warning">授权专利10余项</el-tag>
-            <el-tag type="primary">主持国家级项目5项</el-tag>
+            <el-tag type="success">发表论文50余篇（示例）</el-tag>
+            <el-tag type="warning">授权专利10余项（示例）</el-tag>
+            <el-tag type="primary">主持国家级项目5项（示例）</el-tag>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 专任教师 -->
+    <div class="section-card">
+      <h3 class="subsection-title">专任教师</h3>
+      <div class="teachers-grid">
+        <div class="teacher-card-compact">
+          <div class="teacher-avatar-small">李</div>
+          <div class="teacher-info-compact">
+            <h5>李明华（示例）</h5>
+            <p class="teacher-role">讲师</p>
+            <p class="teacher-research">研究方向：催化材料、绿色化工</p>
+            <div class="teacher-tags">
+              <el-tag size="small" type="success">发表论文20余篇</el-tag>
+              <el-tag size="small" type="warning">主持省级项目3项</el-tag>
+            </div>
+          </div>
+        </div>
+
+        <div class="teacher-card-compact">
+          <div class="teacher-avatar-small" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%);">王</div>
+          <div class="teacher-info-compact">
+            <h5>王建国（示例）</h5>
+            <p class="teacher-role">副教授</p>
+            <p class="teacher-research">研究方向：纳米材料、能源化工</p>
+            <div class="teacher-tags">
+              <el-tag size="small" type="success">发表论文30余篇</el-tag>
+              <el-tag size="small" type="warning">授权专利8项</el-tag>
+            </div>
+          </div>
+        </div>
+
+        <div class="teacher-card-compact">
+          <div class="teacher-avatar-small" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">张</div>
+          <div class="teacher-info-compact">
+            <h5>张秀英（示例）</h5>
+            <p class="teacher-role">讲师</p>
+            <p class="teacher-research">研究方向：分离工程、过程强化</p>
+            <div class="teacher-tags">
+              <el-tag size="small" type="success">发表论文15余篇</el-tag>
+              <el-tag size="small" type="primary">参与国家级项目2项</el-tag>
+            </div>
+          </div>
+        </div>
+
+        <div class="teacher-card-compact">
+          <div class="teacher-avatar-small" style="background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);">陈</div>
+          <div class="teacher-info-compact">
+            <h5>陈思远（示例）</h5>
+            <p class="teacher-role">讲师</p>
+            <p class="teacher-research">研究方向：化工设计、智能制造</p>
+            <div class="teacher-tags">
+              <el-tag size="small" type="success">发表论文18余篇</el-tag>
+              <el-tag size="small" type="primary">教学成果奖2项</el-tag>
+            </div>
           </div>
         </div>
       </div>
@@ -25,7 +83,7 @@
 
     <!-- 现指导学生 -->
     <div class="section-card">
-      <h3 class="subsection-title">现指导学生</h3>
+      <h3 class="subsection-title">研究生</h3>
 
       <!-- 2025级 -->
       <div class="grade-group">
@@ -93,7 +151,7 @@
 
     <!-- 已指导学生 -->
     <div class="section-card">
-      <h3 class="subsection-title">已毕业研究生</h3>
+      <h3 class="subsection-title">毕业生</h3>
 
       <div class="grade-group">
         <h4 class="grade-title">2022级（2025年毕业）</h4>
@@ -153,8 +211,8 @@
       <div class="honors-grid">
         <div class="honor-card">
           <div class="honor-icon">🏆</div>
-          <h4>第十八届全国大学生化工设计竞赛</h4>
-          <p>国家级特等奖</p>
+          <h4>第十八届全国大学生化工设计竞赛（示例）</h4>
+          <p>国家级特等奖（示例）</p>
         </div>
       </div>
     </div>
@@ -251,6 +309,74 @@ import { Trophy } from '@element-plus/icons-vue'
   margin-top: var(--spacing-sm);
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.teachers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.teacher-card-compact {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.teacher-card-compact:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.teacher-avatar-small {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-info-compact {
+  flex: 1;
+}
+
+.teacher-info-compact h5 {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+}
+
+.teacher-role {
+  font-size: 16px;
+  color: var(--secondary-color);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.teacher-research {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.teacher-tags {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -381,6 +507,19 @@ import { Trophy } from '@element-plus/icons-vue'
   .teacher-photo img {
     width: 150px;
     height: 150px;
+  }
+
+  .teachers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-card-compact {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .teacher-avatar-small {
+    margin: 0 auto;
   }
 
   .students-grid {

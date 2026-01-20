@@ -27,7 +27,6 @@ export default defineConfig({
         news: resolve(__dirname, 'news.html'),
         members: resolve(__dirname, 'members.html'),
         publications: resolve(__dirname, 'publications.html'),
-        partners: resolve(__dirname, 'partners.html'),
         projects: resolve(__dirname, 'projects.html'),
         gallery: resolve(__dirname, 'gallery.html'),
         recruitment: resolve(__dirname, 'recruitment.html')

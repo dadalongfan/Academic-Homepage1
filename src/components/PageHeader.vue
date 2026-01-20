@@ -12,49 +12,25 @@
           <h1 class="site-title">介质过程强化团队</h1>
           <p class="site-subtitle">南京工业大学化工学院 · 材料化学工程国家重点实验室</p>
         </div>
-        <div class="header-right">
-          <!-- 语言切换按钮 -->
-          <div class="language-switch">
-            <el-select v-model="currentLang" placeholder="语言" size="small" @change="handleLangChange">
-              <el-option label="中文" value="zh" />
-              <el-option label="English" value="en" />
-            </el-select>
-          </div>
-          <!-- 导航菜单 -->
-          <nav class="nav">
-            <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">{{ t('header.home') }}</a>
-            <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">{{ t('header.news') }}</a>
-            <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">{{ t('header.members') }}</a>
-            <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">{{ t('header.publications') }}</a>
-            <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">{{ t('header.partners') }}</a>-->
-            <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">{{ t('header.projects') }}</a>
-            <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">{{ t('header.gallery') }}</a>
-            <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">{{ t('header.recruitment') }}</a>
-          </nav>
-        </div>
+        <nav class="nav">
+          <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">首页Homepage</a>
+          <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">新闻News</a>
+          <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">成员People</a>
+          <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">研发R&D</a>
+          <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>-->
+          <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">项目Projects</a>
+          <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">相片Gallery</a>
+          <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">招贤Recruit</a>
+        </nav>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, onMounted } from 'vue'
 
-const { locale, t } = useI18n()
 const currentPage = ref('')
-const currentLang = computed({
-  get: () => locale.value,
-  set: (val) => {
-    locale.value = val
-  }
-})
-
-// 语言切换处理
-const handleLangChange = (lang) => {
-  localStorage.setItem('language', lang)
-  window.location.reload() // 刷新页面以应用新语言
-}
 
 onMounted(() => {
   // 获取当前页面路径
@@ -125,24 +101,6 @@ onMounted(() => {
 
 .header-left {
   flex: 1;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-/* 语言切换样式 */
-.language-switch {
-  margin-right: 10px;
-}
-
-/* 导航菜单样式 */
-.nav {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .site-title {

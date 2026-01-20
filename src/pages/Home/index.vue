@@ -32,23 +32,9 @@
 
         <!-- 团队简介 -->
         <div class="section-card team-card">
-          <h3 class="section-title">{{ t('home.teamIntroduction') }}</h3>
+          <h3 class="section-title">团队简介</h3>
           <div class="team-content">
-            <div v-if="leaderInfo.teamIntroduction" class="team-text" v-html="translatedTeamIntroduction"></div>
-            <template v-else>
-              <p class="team-text">
-                介质过程强化团队隶属于南京工业大学化工学院材料化学工程国家重点实验室，由夏铭副教授担任负责人。
-              </p>
-              <p class="team-text">
-                团队主要从事催化反应工程与计算机模拟、生物质催化转化、传质与分离工程等领域的基础研究和应用开发。我们致力于将前沿的理论研究与实际的工业应用相结合，解决化工过程中的关键科学技术问题。
-              </p>
-              <p class="team-text">
-                团队注重理论创新与工程实践相结合，在AIChE Journal、Chemical Engineering Journal、化工进展等高水平期刊发表论文50余篇，总被引近2000次。获授权发明专利10余项，承担国家自然科学基金、江苏省自然科学基金等国家级和省部级项目5项，参与中科院科技先导专项等重大科研项目10余项。
-              </p>
-              <p class="team-text">
-                团队秉承"严谨治学、追求卓越"的科研精神，营造积极向上、团结协作的学术氛围。我们欢迎优秀青年学者和学生加入我们，共同探索化学工程领域的前沿科学问题，为推动化工行业的创新发展贡献力量
-              </p>
-            </template>
+            <div v-if="leaderInfo.teamIntroduction" class="team-text" v-html="leaderInfo.teamIntroduction"></div>
           </div>
         </div>
       </div>
@@ -69,28 +55,14 @@
           </div>
         </div>
 
-        <h3 class="section-title">{{ t('home.personalIntroduction') }}</h3>
+        <h3 class="section-title">个人简介</h3>
         <div class="bio-content">
-          <div v-if="leaderInfo.introduction" class="bio-text" v-html="translatedIntroduction"></div>
-          <template v-else>
-            <p class="bio-text">
-              夏铭，男，汉族，1987年6月出生，籍贯陕西汉中，现任南京工业大学化工学院副教授、硕士生导师，并为材料化学工程国家重点实验室成员。
-            </p>
-            <p class="bio-text">
-              2009年9月至2014年6月，在天津大学化学工程专业硕博连读，获工学博士学位。2014年7月至2022年4月，任职于中国科学院山西煤炭化学研究所，历任助理研究员、副研究员，从事催化反应工程与计算机模拟方向研究。
-            </p>
-            <p class="bio-text">
-              主要研究方向包括催化反应工程与计算机模拟、生物质催化转化、传质与分离工程、工业催化及新型反应器开发等。
-            </p>
-            <p class="bio-text">
-              在AIChE Journal、化工进展等期刊发表论文50余篇，总被引近2000次。获授权发明专利10余项，主持国家自然科学基金等科研项目5项，参与中科院科技先导专项等10余项。
-            </p>
-          </template>
+          <div v-if="leaderInfo.introduction" class="bio-text" v-html="leaderInfo.introduction"></div>
         </div>
 
         <div class="bio-divider"></div>
 
-        <h3 class="section-title">{{ t('home.educationExperience') }}</h3>
+        <h3 class="section-title">教育经历</h3>
         <el-timeline class="timeline">
           <el-timeline-item
             v-for="(edu, index) in leaderEducation"
@@ -104,25 +76,11 @@
               <p v-if="edu.description" class="text-secondary">{{ edu.description }}</p>
             </el-card>
           </el-timeline-item>
-          <template v-if="leaderEducation.length === 0">
-            <el-timeline-item timestamp="2005.09 - 2009.06" placement="top">
-              <el-card>
-                <h4>郑州大学</h4>
-                <p>化学工程与技术（制药工程）专业 · 工学学士</p>
-              </el-card>
-            </el-timeline-item>
-            <el-timeline-item timestamp="2009.09 - 2014.06" placement="top">
-              <el-card>
-                <h4>天津大学</h4>
-                <p>化学工程专业 · 工学博士（硕博连读）</p>
-              </el-card>
-            </el-timeline-item>
-          </template>
         </el-timeline>
 
         <div class="bio-divider"></div>
 
-        <h3 class="section-title">{{ t('home.workExperience') }}</h3>
+        <h3 class="section-title">工作经历</h3>
         <el-timeline class="timeline">
           <el-timeline-item
             v-for="(work, index) in leaderWorkExperience"
@@ -136,22 +94,6 @@
               <p v-if="work.description" class="text-secondary">{{ work.description }}</p>
             </el-card>
           </el-timeline-item>
-          <template v-if="leaderWorkExperience.length === 0">
-            <el-timeline-item timestamp="2014.07 - 2022.04" placement="top">
-              <el-card>
-                <h4>中国科学院山西煤炭化学研究所</h4>
-                <p>助理研究员 · 副研究员</p>
-                <p class="text-secondary">从事催化反应工程与计算机模拟方向研究</p>
-              </el-card>
-            </el-timeline-item>
-            <el-timeline-item timestamp="2022.05 - 至今" placement="top">
-              <el-card>
-                <h4>南京工业大学化工学院</h4>
-                <p>副教授 · 硕士生导师</p>
-                <p class="text-secondary">材料化学工程国家重点实验室成员</p>
-              </el-card>
-            </el-timeline-item>
-          </template>
         </el-timeline>
         </div>
       </div>
@@ -162,12 +104,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import request from '/src/utils/api'
-import { translateDynamicContent } from '/src/utils/translateService'
-
-const { t } = useI18n()
 
 // 负责人基本信息
 const leaderInfo = reactive({
@@ -180,16 +118,6 @@ const leaderInfo = reactive({
   introduction: '',
   teamIntroduction: '',
   avatarUrl: ''
-})
-
-// 翻译后的个人简介
-const translatedIntroduction = computed(() => {
-  return translateDynamicContent(leaderInfo.introduction, 'introduction')
-})
-
-// 翻译后的团队简介
-const translatedTeamIntroduction = computed(() => {
-  return translateDynamicContent(leaderInfo.teamIntroduction, 'teamIntroduction')
 })
 
 // 负责人教育经历
@@ -240,8 +168,6 @@ const fetchSlideshows = async () => {
     })
   } catch (error) {
     console.error('获取幻灯片失败:', error)
-    // 如果API调用失败，使用默认图片
-    slides.value = ['/1.png', '/2.png', '/3.png', '/4.png']
   } finally {
     loading.value = false
   }

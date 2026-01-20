@@ -1,0 +1,5 @@
+# Public Directory
+
+Place static assets here that will be copied to the dist folder as-is.
+
+Important: Put your personal photo (照片.png) in this directory or in the project root.

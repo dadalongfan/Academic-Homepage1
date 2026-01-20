@@ -18,36 +18,7 @@
     />
 
     <template v-else>
-      <!-- 年份筛选 -->
-      <div class="filter-section">
-        <div class="year-filter">
-          <el-button
-            v-for="year in years"
-            :key="year"
-            :type="selectedYear === year ? 'primary' : 'default'"
-            @click="filterByYear(year)"
-            size="large"
-          >
-            {{ year === '全部' ? year : year + '年' }}
-          </el-button>
-        </div>
-      </div>
 
-      <!-- 新闻统计 -->
-      <div class="news-stats">
-        <div class="stat-card">
-          <div class="stat-number">{{ totalNews }}</div>
-          <div class="stat-label">总新闻数</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ currentYearNews }}</div>
-          <div class="stat-label">{{ new Date().getFullYear() }}年新闻</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ featuredNews }}</div>
-          <div class="stat-label">重要新闻</div>
-        </div>
-      </div>
 
       <!-- 新闻列表 -->
       <div class="news-list">
@@ -105,30 +76,10 @@ import request from '@/utils/api'
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
-const selectedYear = ref('全部')
 const newsList = ref([])
 
-// 年份列表
-const years = computed(() => {
-  const yearSet = new Set(newsList.value.map(news => getYear(news.publishDate)))
-  return ['全部', ...Array.from(yearSet).sort((a, b) => b - a)]
-})
-
-// 过滤后的新闻列表
-const filteredNews = computed(() => {
-  if (selectedYear.value === '全部') {
-    return newsList.value
-  }
-  return newsList.value.filter(news => getYear(news.publishDate) === selectedYear.value)
-})
-
-// 统计数据
-const totalNews = computed(() => newsList.value.length)
-const currentYearNews = computed(() => {
-  const currentYear = new Date().getFullYear()
-  return newsList.value.filter(news => getYear(news.publishDate) === currentYear).length
-})
-const featuredNews = computed(() => newsList.value.filter(news => news.isImportant).length)
+// 新闻列表
+const filteredNews = computed(() => newsList.value)
 
 // 辅助函数
 const getYear = (dateStr) => {
@@ -178,10 +129,7 @@ const getPlainText = (html) => {
   return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText
 }
 
-// 筛选函数
-const filterByYear = (year) => {
-  selectedYear.value = year
-}
+
 
 // 加载新闻数据
 const loadNews = async () => {
@@ -243,17 +191,6 @@ onMounted(() => {
   color: var(--primary-color);
   margin-bottom: 40px;
   font-weight: 300;
-}
-
-.filter-section {
-  margin-bottom: 30px;
-}
-
-.year-filter {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
 }
 
 .news-list {
@@ -386,32 +323,5 @@ onMounted(() => {
 
 .news-link a:hover {
   text-decoration: underline;
-}
-
-.news-stats {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin: 20px auto 30px;
-  padding: 30px;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  border-radius: 8px;
-  max-width: 900px;
-}
-
-.stat-card {
-  text-align: center;
-  color: white;
-}
-
-.stat-number {
-  font-size: 36px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  font-size: 14px;
-  opacity: 0.9;
 }
 </style>

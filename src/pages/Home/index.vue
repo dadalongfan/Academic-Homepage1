@@ -34,7 +34,7 @@
         <div class="section-card team-card">
           <h3 class="section-title">{{ t('home.teamIntroduction') }}</h3>
           <div class="team-content">
-            <div v-if="leaderInfo.teamIntroduction" class="team-text" v-html="leaderInfo.teamIntroduction"></div>
+            <div v-if="leaderInfo.teamIntroduction" class="team-text" v-html="getLocalizedContent(leaderInfo.teamIntroduction)"></div>
             <template v-else>
               <p class="team-text">
                 介质过程强化团队隶属于南京工业大学化工学院材料化学工程国家重点实验室，由夏铭副教授担任负责人。
@@ -73,7 +73,7 @@
 
         <h3 class="section-title">{{ t('home.personalIntroduction') }}</h3>
         <div class="bio-content">
-          <div v-if="leaderInfo.introduction" class="bio-text" v-html="leaderInfo.introduction"></div>
+          <div v-if="leaderInfo.introduction" class="bio-text" v-html="getLocalizedContent(leaderInfo.introduction)"></div>
           <template v-else>
             <p class="bio-text">
               夏铭，男，汉族，1987年6月出生，籍贯陕西汉中，现任南京工业大学化工学院副教授、硕士生导师，并为材料化学工程国家重点实验室成员。
@@ -236,6 +236,32 @@ const fetchSlideshows = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 根据当前语言提取本地化内容
+const { locale } = useI18n()
+const getLocalizedContent = (content) => {
+  if (!content) return ''
+  
+  const currentLang = locale.value
+  // 检查内容是否包含语言标记
+  const zhMatch = content.match(/\[zh\]([\s\S]*?)\[\/zh\]/)
+  const enMatch = content.match(/\[en\]([\s\S]*?)\[\/en\]/)
+  
+  // 如果没有语言标记，直接返回原始内容
+  if (!zhMatch && !enMatch) {
+    return content
+  }
+  
+  // 根据当前语言返回对应的内容
+  if (currentLang === 'en' && enMatch) {
+    return enMatch[1]
+  } else if (currentLang === 'zh' && zhMatch) {
+    return zhMatch[1]
+  }
+  
+  //  fallback to中文
+  return zhMatch ? zhMatch[1] : content
 }
 
 // 获取负责人基本信息

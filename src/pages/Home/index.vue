@@ -32,7 +32,7 @@
 
         <!-- 团队简介 -->
         <div class="section-card team-card">
-          <h3 class="section-title">团队简介</h3>
+          <h3 class="section-title">{{ t('home.teamIntroduction') }}</h3>
           <div class="team-content">
             <div v-if="leaderInfo.teamIntroduction" class="team-text" v-html="leaderInfo.teamIntroduction"></div>
             <template v-else>
@@ -71,7 +71,7 @@
           </div>
         </div>
 
-        <h3 class="section-title">个人简介</h3>
+        <h3 class="section-title">{{ t('home.personalIntroduction') }}</h3>
         <div class="bio-content">
           <div v-if="leaderInfo.introduction" class="bio-text" v-html="leaderInfo.introduction"></div>
           <template v-else>
@@ -92,7 +92,7 @@
 
         <div class="bio-divider"></div>
 
-        <h3 class="section-title">教育经历</h3>
+        <h3 class="section-title">{{ t('home.educationExperience') }}</h3>
         <el-timeline class="timeline">
           <el-timeline-item
             v-for="(edu, index) in leaderEducation"
@@ -124,7 +124,7 @@
 
         <div class="bio-divider"></div>
 
-        <h3 class="section-title">工作经历</h3>
+        <h3 class="section-title">{{ t('home.workExperience') }}</h3>
         <el-timeline class="timeline">
           <el-timeline-item
             v-for="(work, index) in leaderWorkExperience"
@@ -165,7 +165,10 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import request from '/src/utils/api'
+
+const { t } = useI18n()
 
 // 负责人基本信息
 const leaderInfo = reactive({

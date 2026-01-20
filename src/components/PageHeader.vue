@@ -22,14 +22,14 @@
           </div>
           <!-- 导航菜单 -->
           <nav class="nav">
-            <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">首页</a>
-            <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">新闻</a>
-            <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">成员</a>
-            <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">研发</a>
-            <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>-->
-            <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">项目</a>
-            <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">相片</a>
-            <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">招贤</a>
+            <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">{{ t('header.home') }}</a>
+            <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">{{ t('header.news') }}</a>
+            <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">{{ t('header.members') }}</a>
+            <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">{{ t('header.publications') }}</a>
+            <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">{{ t('header.partners') }}</a>-->
+            <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">{{ t('header.projects') }}</a>
+            <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">{{ t('header.gallery') }}</a>
+            <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">{{ t('header.recruitment') }}</a>
           </nav>
         </div>
       </div>
@@ -41,7 +41,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const currentPage = ref('')
 const currentLang = computed({
   get: () => locale.value,

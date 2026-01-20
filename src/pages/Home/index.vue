@@ -34,7 +34,7 @@
         <div class="section-card team-card">
           <h3 class="section-title">{{ t('home.teamIntroduction') }}</h3>
           <div class="team-content">
-            <div v-if="leaderInfo.teamIntroduction" class="team-text" v-html="getLocalizedContent(leaderInfo.teamIntroduction)"></div>
+            <div v-if="leaderInfo.teamIntroduction" class="team-text" v-html="translatedTeamIntroduction"></div>
             <template v-else>
               <p class="team-text">
                 介质过程强化团队隶属于南京工业大学化工学院材料化学工程国家重点实验室，由夏铭副教授担任负责人。
@@ -49,8 +49,6 @@
                 团队秉承"严谨治学、追求卓越"的科研精神，营造积极向上、团结协作的学术氛围。我们欢迎优秀青年学者和学生加入我们，共同探索化学工程领域的前沿科学问题，为推动化工行业的创新发展贡献力量
               </p>
             </template>
-
-
           </div>
         </div>
       </div>
@@ -73,7 +71,7 @@
 
         <h3 class="section-title">{{ t('home.personalIntroduction') }}</h3>
         <div class="bio-content">
-          <div v-if="leaderInfo.introduction" class="bio-text" v-html="getLocalizedContent(leaderInfo.introduction)"></div>
+          <div v-if="leaderInfo.introduction" class="bio-text" v-html="translatedIntroduction"></div>
           <template v-else>
             <p class="bio-text">
               夏铭，男，汉族，1987年6月出生，籍贯陕西汉中，现任南京工业大学化工学院副教授、硕士生导师，并为材料化学工程国家重点实验室成员。
@@ -164,9 +162,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import request from '/src/utils/api'
+import { translateDynamicContent } from '/src/utils/translateService'
 
 const { t } = useI18n()
 
@@ -181,6 +180,16 @@ const leaderInfo = reactive({
   introduction: '',
   teamIntroduction: '',
   avatarUrl: ''
+})
+
+// 翻译后的个人简介
+const translatedIntroduction = computed(() => {
+  return translateDynamicContent(leaderInfo.introduction, 'introduction')
+})
+
+// 翻译后的团队简介
+const translatedTeamIntroduction = computed(() => {
+  return translateDynamicContent(leaderInfo.teamIntroduction, 'teamIntroduction')
 })
 
 // 负责人教育经历
@@ -236,32 +245,6 @@ const fetchSlideshows = async () => {
   } finally {
     loading.value = false
   }
-}
-
-// 根据当前语言提取本地化内容
-const { locale } = useI18n()
-const getLocalizedContent = (content) => {
-  if (!content) return ''
-  
-  const currentLang = locale.value
-  // 检查内容是否包含语言标记
-  const zhMatch = content.match(/\[zh\]([\s\S]*?)\[\/zh\]/)
-  const enMatch = content.match(/\[en\]([\s\S]*?)\[\/en\]/)
-  
-  // 如果没有语言标记，直接返回原始内容
-  if (!zhMatch && !enMatch) {
-    return content
-  }
-  
-  // 根据当前语言返回对应的内容
-  if (currentLang === 'en' && enMatch) {
-    return enMatch[1]
-  } else if (currentLang === 'zh' && zhMatch) {
-    return zhMatch[1]
-  }
-  
-  //  fallback to中文
-  return zhMatch ? zhMatch[1] : content
 }
 
 // 获取负责人基本信息

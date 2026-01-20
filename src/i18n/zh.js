@@ -39,5 +39,11 @@ export default {
     recruitmentInfo: '招生信息',
     groupAdvantages: '课题组优势',
     applicationProcess: '申请流程'
+  },
+  dynamic: {
+    introduction: '',
+    teamIntroduction: '',
+    bio: '',
+    researchDirection: ''
   }
 }

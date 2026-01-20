@@ -55,46 +55,53 @@
           </div>
         </div>
 
-        <h3 class="section-title">个人简介</h3>
-        <div class="bio-content">
-          <div v-if="leaderInfo.introduction" class="bio-text" v-html="leaderInfo.introduction"></div>
-        </div>
+        <!-- 个人简介 -->
+        <template v-if="leaderInfo.introduction">
+          <h3 class="section-title">个人简介</h3>
+          <div class="bio-content">
+            <div class="bio-text" v-html="leaderInfo.introduction"></div>
+          </div>
+          <div class="bio-divider"></div>
+        </template>
 
-        <div class="bio-divider"></div>
+        <!-- 教育经历 -->
+        <template v-if="leaderEducation.length > 0">
+          <h3 class="section-title">教育经历</h3>
+          <el-timeline class="timeline">
+            <el-timeline-item
+              v-for="(edu, index) in leaderEducation"
+              :key="index"
+              :timestamp="`${edu.startDate ? edu.startDate : ''} - ${edu.endDate ? edu.endDate : '至今'}`"
+              placement="top"
+            >
+              <el-card>
+                <h4>{{ edu.institution }}</h4>
+                <p>{{ edu.degree }} · {{ edu.major }}</p>
+                <p v-if="edu.description" class="text-secondary">{{ edu.description }}</p>
+              </el-card>
+            </el-timeline-item>
+          </el-timeline>
+          <div class="bio-divider"></div>
+        </template>
 
-        <h3 class="section-title">教育经历</h3>
-        <el-timeline class="timeline">
-          <el-timeline-item
-            v-for="(edu, index) in leaderEducation"
-            :key="index"
-            :timestamp="`${edu.startDate ? edu.startDate : ''} - ${edu.endDate ? edu.endDate : '至今'}`"
-            placement="top"
-          >
-            <el-card>
-              <h4>{{ edu.institution }}</h4>
-              <p>{{ edu.degree }} · {{ edu.major }}</p>
-              <p v-if="edu.description" class="text-secondary">{{ edu.description }}</p>
-            </el-card>
-          </el-timeline-item>
-        </el-timeline>
-
-        <div class="bio-divider"></div>
-
-        <h3 class="section-title">工作经历</h3>
-        <el-timeline class="timeline">
-          <el-timeline-item
-            v-for="(work, index) in leaderWorkExperience"
-            :key="index"
-            :timestamp="`${work.startDate ? work.startDate : ''} - ${work.endDate ? work.endDate : '至今'}`"
-            placement="top"
-          >
-            <el-card>
-              <h4>{{ work.company }}</h4>
-              <p>{{ work.position }}</p>
-              <p v-if="work.description" class="text-secondary">{{ work.description }}</p>
-            </el-card>
-          </el-timeline-item>
-        </el-timeline>
+        <!-- 工作经历 -->
+        <template v-if="leaderWorkExperience.length > 0">
+          <h3 class="section-title">工作经历</h3>
+          <el-timeline class="timeline">
+            <el-timeline-item
+              v-for="(work, index) in leaderWorkExperience"
+              :key="index"
+              :timestamp="`${work.startDate ? work.startDate : ''} - ${work.endDate ? work.endDate : '至今'}`"
+              placement="top"
+            >
+              <el-card>
+                <h4>{{ work.company }}</h4>
+                <p>{{ work.position }}</p>
+                <p v-if="work.description" class="text-secondary">{{ work.description }}</p>
+              </el-card>
+            </el-timeline-item>
+          </el-timeline>
+        </template>
         </div>
       </div>
     </div>

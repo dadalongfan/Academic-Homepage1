@@ -1,53 +1,59 @@
 <template>
   <div class="projects-page">
-    <h2 class="section-title">科研项目</h2>
+    <h2 class="section-title">{{ $t('projects.title') }}</h2>
 
     <!-- 项目列表 -->
     <div class="section-card">
-      <h3 class="subsection-title">科研项目</h3>
+      <h3 class="subsection-title">{{ $t('projects.list') }}</h3>
       <el-table :data="projects" style="width: 100%" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="name" label="项目名称" min-width="300" />
-        <el-table-column prop="role" label="角色" width="100" align="center">
+        <el-table-column type="index" :label="$t('common.index')" width="60" />
+        <el-table-column prop="name" :label="$t('projects.name')" min-width="300" />
+        <el-table-column prop="role" :label="$t('projects.role')" width="100" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.role === '主持' ? 'danger' : 'primary'" size="small">
               {{ scope.row.role }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="level" label="级别" width="100" align="center">
+        <el-table-column prop="level" :label="$t('projects.level')" width="100" align="center">
           <template #default="scope">
             <el-tag :type="getProjectLevelType(scope.row.level)" size="small">
               {{ scope.row.level }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="period" label="起止时间" width="180" />
+        <el-table-column prop="period" :label="$t('projects.period')" width="180" />
       </el-table>
     </div>
-
-
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import request from '../../utils/api'
+import { useTranslation } from '@/utils/i18n/useTranslation'
 
-const projects = ref([])
 const loading = ref(false)
+
+// 使用通用翻译逻辑
+const {
+  originalData: originalProjects,
+  displayData: projects,
+  updateOriginalData
+} = useTranslation([], {
+  textFields: ['name']
+})
 
 // 从API加载项目数据
 const loadProjects = async () => {
   try {
     loading.value = true
     const res = await request.get('/projects/list')
-    projects.value = (res.data || []).map(project => ({
-      name: project.name,
-      role: project.role,
-      level: project.level || project.type,
+    const processedProjects = (res.data || []).map(project => ({
+      ...project,
       period: `${project.startDate} -- ${project.endDate}`
     }))
+    updateOriginalData(processedProjects)
   } catch (error) {
     console.error('加载项目数据失败:', error)
   } finally {

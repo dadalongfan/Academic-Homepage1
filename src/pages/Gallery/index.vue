@@ -1,8 +1,6 @@
 <template>
   <div class="gallery-page">
-    <h2 class="section-title">电子相册</h2>
-
-
+    <h2 class="section-title">{{ $t('gallery.title') }}</h2>
 
     <!-- 遍历分类显示相册 -->
     <div v-for="category in categories" :key="category.id" class="section-card">
@@ -21,7 +19,7 @@
         <div v-show="sectionStates[category.name]" class="gallery-grid">
           <el-empty
             v-if="getCategoryImages(category.id).length === 0"
-            description="该分类暂无照片"
+            :description="$t('gallery.noImages')"
           />
 
           <div
@@ -43,7 +41,7 @@
             </div>
             <div class="image-caption">
               {{ image.description || category.name }}
-              <div class="image-date">{{ image.uploadDate || '未设置日期' }}</div>
+              <div class="image-date">{{ image.uploadDate || $t('gallery.noDate') }}</div>
             </div>
           </div>
         </div>
@@ -52,7 +50,7 @@
 
     <!-- 空状态提示 -->
     <div v-if="loading" class="section-card">
-      <el-empty description="相册正在加载中...">
+      <el-empty :description="$t('gallery.loading')">
         <template #image>
           <div class="loading-icon">🔄</div>
         </template>
@@ -61,7 +59,7 @@
 
     <div v-else-if="categories.length === 0" class="section-card">
       <el-empty
-        description="相册正在整理中，更多精彩内容即将上线..."
+        :description="$t('gallery.empty')"
       >
         <template #image>
           <div class="empty-icon">📸</div>
@@ -69,12 +67,10 @@
       </el-empty>
     </div>
 
-
-
     <!-- 图片查看模态框 -->
     <el-dialog
       v-model="imageModalVisible"
-      :title="selectedImage.description || '图片预览'"
+      :title="selectedImage.description || $t('gallery.preview')"
       width="80%"
       :show-close="true"
       :close-on-click-modal="true"
@@ -84,7 +80,7 @@
       <div class="image-modal-content">
         <img
           :src="selectedImage.imageUrl"
-          :alt="selectedImage.description || '图片预览'"
+          :alt="selectedImage.description || $t('gallery.preview')"
           @error="handleImageError"
           class="modal-image"
         />
@@ -92,11 +88,11 @@
       <template #footer>
         <div class="modal-footer">
           <div class="image-info">
-            <p><strong>分类：</strong>{{ getCategoryInfo(selectedImage.categoryId)?.name || '未知' }}</p>
-            <p v-if="selectedImage.description"><strong>描述：</strong>{{ selectedImage.description }}</p>
-            <p v-if="selectedImage.uploadDate"><strong>上传日期：</strong>{{ selectedImage.uploadDate }}</p>
+            <p><strong>{{ $t('gallery.category') }}：</strong>{{ getCategoryInfo(selectedImage.categoryId)?.name || $t('gallery.unknown') }}</p>
+            <p v-if="selectedImage.description"><strong>{{ $t('gallery.description') }}：</strong>{{ selectedImage.description }}</p>
+            <p v-if="selectedImage.uploadDate"><strong>{{ $t('gallery.uploadDate') }}：</strong>{{ selectedImage.uploadDate }}</p>
           </div>
-          <el-button @click="closeImageModal">关闭</el-button>
+          <el-button @click="closeImageModal">{{ $t('common.close') }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -107,12 +103,32 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Picture, Trophy, User, ArrowUp, ArrowDown, ZoomIn, Close } from '@element-plus/icons-vue'
 import request from '../../utils/api'
+import { useTranslation } from '@/utils/i18n/useTranslation'
 
-const categories = ref([])
-const images = ref({})
 const loading = ref(false)
 const imageModalVisible = ref(false)
 const selectedImage = ref({})
+
+// 使用通用翻译逻辑处理分类
+const {
+  originalData: originalCategories,
+  displayData: categories,
+  updateOriginalData: updateCategories
+} = useTranslation([], {
+  textFields: ['name']
+})
+
+// 图片数据按分类组织
+const images = ref({})
+
+// 使用通用翻译逻辑处理所有图片
+const {
+  originalData: originalImages,
+  displayData: allImages,
+  updateOriginalData: updateAllImages
+} = useTranslation([], {
+  textFields: ['description']
+})
 
 // 加载分类和图片数据
 const loadGalleryData = async () => {
@@ -126,8 +142,14 @@ const loadGalleryData = async () => {
     ])
 
     // 更新分类数据
-    categories.value = categoriesRes.data || []
-    console.log('分类数据:', categories.value)
+    const categoriesData = categoriesRes.data || []
+    updateCategories(categoriesData)
+    console.log('分类数据:', categoriesData)
+
+    // 更新所有图片数据
+    const allImagesData = allImagesRes.data || []
+    updateAllImages(allImagesData)
+    console.log('图片数据:', allImagesData)
 
     // 按分类组织图片数据
     const imagesByCategory = {}
@@ -136,10 +158,7 @@ const loadGalleryData = async () => {
     })
 
     // 分配图片到对应分类
-    const allImages = allImagesRes.data || []
-    console.log('图片数据:', allImages)
-
-    allImages.forEach(image => {
+    allImages.value.forEach(image => {
       if (image.categoryId && imagesByCategory[image.categoryId]) {
         imagesByCategory[image.categoryId].push(image)
       } else {

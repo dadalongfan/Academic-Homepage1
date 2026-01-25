@@ -9,28 +9,60 @@
     <div class="header-content">
       <div class="header-container">
         <div class="header-left">
-          <h1 class="site-title">介质过程强化团队</h1>
-          <p class="site-subtitle">南京工业大学化工学院 · 材料化学工程国家重点实验室</p>
+          <h1 class="site-title">{{ $t('介质过程强化团队') }}</h1>
+          <p class="site-subtitle">{{ $t('南京工业大学化工学院 · 材料化学工程国家重点实验室') }}</p>
         </div>
-        <nav class="nav">
-          <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">首页Homepage</a>
-          <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">新闻News</a>
-          <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">成员People</a>
-          <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">研发R&D</a>
-          <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>-->
-          <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">项目Projects</a>
-          <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">相片Gallery</a>
-          <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">招贤Recruit</a>
-        </nav>
+        <div class="header-right">
+          <nav class="nav">
+            <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">{{ $t('home') }}</a>
+            <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">{{ $t('news') }}</a>
+            <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">{{ $t('members') }}</a>
+            <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">{{ $t('publications') }}</a>
+            <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>-->
+            <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">{{ $t('projects') }}</a>
+            <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">{{ $t('gallery') }}</a>
+            <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">{{ $t('recruitment') }}</a>
+          </nav>
+          <div class="language-switcher">
+            <button 
+              class="language-btn" 
+              :class="{ active: currentLocale === 'zh' }"
+              @click="switchLanguage('zh')"
+            >
+              中文
+            </button>
+            <button 
+              class="language-btn" 
+              :class="{ active: currentLocale === 'en' }"
+              @click="switchLanguage('en')"
+            >
+              English
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import i18n from '../utils/i18n'
 
 const currentPage = ref('')
+const { locale } = useI18n()
+const currentLocale = ref(locale.value)
+
+// 监听语言变化，更新currentLocale
+watch(locale, (newValue) => {
+  currentLocale.value = newValue
+})
+
+const switchLanguage = (lang) => {
+  // 使用我们自定义的i18n实例的switchLanguage方法
+  i18n.global.switchLanguage(lang)
+}
 
 onMounted(() => {
   // 获取当前页面路径
@@ -97,6 +129,38 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.language-switcher {
+  display: flex;
+  gap: 8px;
+}
+
+.language-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.language-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.language-btn.active {
+  background: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
 }
 
 .header-left {

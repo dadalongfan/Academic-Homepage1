@@ -1,10 +1,10 @@
 <template>
   <div class="publications-page">
-    <h2 class="section-title">科研成果</h2>
+    <h2 class="section-title">{{ $t('publications.title') }}</h2>
 
     <!-- 阶段成就 -->
     <div class="section-card">
-      <h3 class="subsection-title">阶段成就</h3>
+      <h3 class="subsection-title">{{ $t('publications.achievements') }}</h3>
       <div class="achievements-list">
         <div v-for="achievement in achievements" :key="achievement.id" class="achievement-item">
           <div class="achievement-content">
@@ -31,7 +31,7 @@
 
     <!-- 代表论文 -->
     <div class="section-card">
-      <h3 class="subsection-title">代表论文</h3>
+      <h3 class="subsection-title">{{ $t('publications.papers') }}</h3>
       <div class="papers-list">
         <div v-for="(paper, index) in papers" :key="index" class="paper-item">
           <div class="paper-number">[{{ index + 1 }}]</div>
@@ -79,7 +79,7 @@
 
     <!-- 代表专利 -->
     <div class="section-card">
-      <h3 class="subsection-title">代表专利</h3>
+      <h3 class="subsection-title">{{ $t('publications.patents') }}</h3>
       <div class="patents-list">
         <div v-for="(patent, index) in patents" :key="patent.id" class="patent-item">
           <div class="patent-number">[{{ index + 1 }}]</div>
@@ -99,7 +99,7 @@
 
     <!-- 代表奖励 -->
     <div class="section-card">
-      <h3 class="subsection-title">代表奖励</h3>
+      <h3 class="subsection-title">{{ $t('publications.honors') }}</h3>
       <div class="honors-list">
         <div v-for="(honor, index) in honors" :key="honor.id" class="honor-item">
           <div class="honor-rank">
@@ -121,18 +121,18 @@
 
     <!-- 合作伙伴 -->
     <div class="section-card">
-      <h3 class="subsection-title">合作伙伴</h3>
+      <h3 class="subsection-title">{{ $t('publications.partners') }}</h3>
 
       <!-- 合作介绍 -->
       <div class="intro-section">
         <p class="intro-text">
-          依托中科院山西煤化所及南工大平台，在新型反应器开发、精密精馏塔设计及工艺开发与优化领域，与多家企业、高校及科研机构展开了长期稳定的合作。
+          {{ $t('publications.partnersIntro') }}
         </p>
       </div>
 
       <!-- 合作单位 -->
       <div class="partners-section">
-        <h4 class="section-subtitle">项目协作单位</h4>
+        <h4 class="section-subtitle">{{ $t('publications.collaborationUnits') }}</h4>
         <div class="partners-grid">
           <div v-for="(partner, index) in partners" :key="partner.id" class="partner-card">
             <div class="partner-logo">
@@ -148,27 +148,27 @@
 
       <!-- 合作领域 -->
       <div class="areas-section">
-        <h4 class="section-subtitle">合作领域</h4>
+        <h4 class="section-subtitle">{{ $t('publications.collaborationAreas') }}</h4>
         <div class="areas-grid">
           <div class="area-item">
             <div class="area-icon">🏭</div>
-            <h5>新型反应器开发</h5>
-            <p>针对催化反应过程的反应器设计与优化</p>
+            <h5>{{ $t('publications.area1Title') }}</h5>
+            <p>{{ $t('publications.area1Desc') }}</p>
           </div>
           <div class="area-item">
             <div class="area-icon">🔬</div>
-            <h5>精密精馏塔设计</h5>
-            <p>高效分离设备的开发与工艺优化</p>
+            <h5>{{ $t('publications.area2Title') }}</h5>
+            <p>{{ $t('publications.area2Desc') }}</p>
           </div>
           <div class="area-item">
             <div class="area-icon">⚙️</div>
-            <h5>工艺开发与优化</h5>
-            <p>化工过程的模拟、优化与工业化应用</p>
+            <h5>{{ $t('publications.area3Title') }}</h5>
+            <p>{{ $t('publications.area3Desc') }}</p>
           </div>
           <div class="area-item">
             <div class="area-icon">🔧</div>
-            <h5>工业催化技术</h5>
-            <p>催化剂设计与反应工程研究</p>
+            <h5>{{ $t('publications.area4Title') }}</h5>
+            <p>{{ $t('publications.area4Desc') }}</p>
           </div>
         </div>
       </div>
@@ -178,32 +178,32 @@
 
     <!-- 发表论文统计 -->
     <div class="section-card">
-      <h3 class="subsection-title">研究成果统计</h3>
+      <h3 class="subsection-title">{{ $t('publications.stats') }}</h3>
       <el-row :gutter="20">
         <el-col :xs="24" :sm="12" :md="8">
           <div class="stat-box">
-            <h5>论文发表</h5>
+            <h5>{{ $t('publications.paperStats') }}</h5>
             <div class="stat-detail">
-              <p>在AIChE Journal、化工进展等期刊发表论文<strong>50余篇</strong></p>
-              <p>总被引近<strong>2000次</strong></p>
+              <p>{{ $t('publications.paperStatsDesc1') }}</p>
+              <p>{{ $t('publications.paperStatsDesc2') }}</p>
             </div>
           </div>
         </el-col>
         <el-col :xs="24" :sm="12" :md="8">
           <div class="stat-box">
-            <h5>专利成果</h5>
+            <h5>{{ $t('publications.patentStats') }}</h5>
             <div class="stat-detail">
-              <p>获授权发明专利<strong>10余项</strong></p>
-              <p>部分成果应用于<strong>中试及万吨级工程示范</strong></p>
+              <p>{{ $t('publications.patentStatsDesc1') }}</p>
+              <p>{{ $t('publications.patentStatsDesc2') }}</p>
             </div>
           </div>
         </el-col>
         <el-col :xs="24" :sm="12" :md="8">
           <div class="stat-box">
-            <h5>科研项目</h5>
+            <h5>{{ $t('publications.projectStats') }}</h5>
             <div class="stat-detail">
-              <p>主持国家自然科学基金等科研项目<strong>5项</strong></p>
-              <p>参与中科院科技先导专项等<strong>10余项</strong></p>
+              <p>{{ $t('publications.projectStatsDesc1') }}</p>
+              <p>{{ $t('publications.projectStatsDesc2') }}</p>
             </div>
           </div>
         </el-col>
@@ -216,25 +216,56 @@
 import { ref, onMounted } from 'vue'
 import { Link, Download, Trophy } from '@element-plus/icons-vue'
 import request from '@/utils/api'
+import { useTranslation } from '@/utils/i18n/useTranslation'
 
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
 
 // 阶段成就
-const achievements = ref([])
+const {
+  originalData: originalAchievements,
+  displayData: achievements,
+  updateOriginalData: updateAchievements
+} = useTranslation([], {
+  textFields: ['title', 'description', 'tags']
+})
 
 // 论文
-const papers = ref([])
+const {
+  originalData: originalPapers,
+  displayData: papers,
+  updateOriginalData: updatePapers
+} = useTranslation([], {
+  textFields: ['title', 'authors', 'journal']
+})
 
 // 专利
-const patents = ref([])
+const {
+  originalData: originalPatents,
+  displayData: patents,
+  updateOriginalData: updatePatents
+} = useTranslation([], {
+  textFields: ['title', 'inventors']
+})
 
 // 荣誉
-const honors = ref([])
+const {
+  originalData: originalHonors,
+  displayData: honors,
+  updateOriginalData: updateHonors
+} = useTranslation([], {
+  textFields: ['title']
+})
 
 // 合作伙伴
-const partners = ref([])
+const {
+  originalData: originalPartners,
+  displayData: partners,
+  updateOriginalData: updatePartners
+} = useTranslation([], {
+  textFields: ['name', 'cooperationType']
+})
 
 // 获取荣誉标签类型
 const getHonorTagType = (level) => {
@@ -281,11 +312,11 @@ const loadAllData = async () => {
     ])
 
     // 设置数据
-    achievements.value = achievementsRes.data || []
-    papers.value = papersRes.data || []
-    patents.value = patentsRes.data || []
-    honors.value = honorsRes.data || []
-    partners.value = partnersRes.data || []
+    updateAchievements(achievementsRes.data || [])
+    updatePapers(papersRes.data || [])
+    updatePatents(patentsRes.data || [])
+    updateHonors(honorsRes.data || [])
+    updatePartners(partnersRes.data || [])
     
     // 调试：打印论文数据
     console.log('论文数据:', papers.value)
@@ -297,7 +328,7 @@ const loadAllData = async () => {
 
     // 如果没有数据，使用默认示例数据
     if (achievements.value.length === 0) {
-      achievements.value = [
+      const exampleAchievements = [
         {
           title: '钴基费托合成催化剂与反应器技术突破',
           description: '在钴基费托合成领域取得重大突破，开发了系列高性能钴基催化剂及新型反应器技术。相关成果已成功应用于中试装置及万吨级工程示范，实现了从实验室研究到工业化应用的技术跨越。该技术路线为煤制油产业的发展提供了重要支撑，具有良好的工业应用前景。',
@@ -317,6 +348,7 @@ const loadAllData = async () => {
           tags: '数字化设计,智能优化,平台建设'
         }
       ]
+      updateAchievements(exampleAchievements)
     }
 
   } catch (err) {

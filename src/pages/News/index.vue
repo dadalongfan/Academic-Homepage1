@@ -72,11 +72,23 @@
 import { ref, computed, onMounted } from 'vue'
 import { ArrowRight, FolderOpened, Loading } from '@element-plus/icons-vue'
 import request from '@/utils/api'
+import { useTranslation } from '/src/utils/i18n/useTranslation'
 
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
-const newsList = ref([])
+
+// 使用通用翻译逻辑
+const { 
+  originalData: originalNewsList, 
+  displayData: newsList, 
+  updateOriginalData, 
+  isTranslating 
+} = useTranslation([], {
+  textFields: ['title', 'category'],
+  htmlFields: ['content'],
+  arrayFields: []
+})
 
 // 新闻列表
 const filteredNews = computed(() => newsList.value)
@@ -89,8 +101,8 @@ const getYear = (dateStr) => {
 
 const getMonth = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return (date.getMonth() + 1).toString().padStart(2, '0')
+  const month = new Date(dateStr).getMonth() + 1
+  return month.toString().padStart(2, '0')
 }
 
 const getCategoryType = (category) => {
@@ -129,8 +141,6 @@ const getPlainText = (html) => {
   return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText
 }
 
-
-
 // 加载新闻数据
 const loadNews = async () => {
   try {
@@ -139,18 +149,25 @@ const loadNews = async () => {
 
     const res = await request.get('/news/list')
 
+    let newsData = []
     if (res.code === 200) {
-      newsList.value = res.data || []
-      console.log('新闻数据加载成功:', newsList.value.length, '条')
+      newsData = res.data || []
+      console.log('新闻原始数据加载成功:', newsData.length, '条')
     } else {
       error.value = res.message || '加载新闻失败'
+      return
     }
+    
+    // 更新原始数据，触发翻译
+    updateOriginalData(newsData)
+    
+    console.log('新闻翻译后数据:', newsList.value.length, '条')
   } catch (err) {
     console.error('加载新闻失败:', err)
     error.value = '加载新闻失败，请检查后端服务是否启动'
 
     // 如果API调用失败，使用示例数据
-    newsList.value = [
+    const exampleData = [
       {
         id: 1,
         title: '欢迎使用学术主页管理系统',
@@ -160,6 +177,9 @@ const loadNews = async () => {
         publishDate: new Date().toISOString().split('T')[0]
       }
     ]
+    
+    // 更新原始数据，触发翻译
+    updateOriginalData(exampleData)
   } finally {
     loading.value = false
   }

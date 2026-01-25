@@ -3,17 +3,17 @@
     <div class="footer-container">
       <div class="footer-content">
         <div class="footer-section">
-          <h3>联系方式</h3>
+          <h3>{{ $t('联系方式') }}</h3>
           <div class="contact-info">
-            <p><i class="icon">📧</i> 邮箱：{{ leaderInfo.email || '暂未设置' }}</p>
-            <p><i class="icon">📱</i> 电话：{{ leaderInfo.phone || '暂未设置' }}</p>
-            <p><i class="icon">📍</i> 地址：{{ leaderInfo.address || '暂未设置' }}</p>
-            <p><i class="icon">📮</i> 邮编：{{ leaderInfo.postcode || '暂未设置' }}</p>
+            <p><i class="icon">📧</i> {{ $t('邮箱') }}：{{ leaderInfo.email || $t('暂未设置') }}</p>
+            <p><i class="icon">📱</i> {{ $t('电话') }}：{{ leaderInfo.phone || $t('暂未设置') }}</p>
+            <p><i class="icon">📍</i> {{ $t('地址') }}：{{ leaderInfo.address || $t('暂未设置') }}</p>
+            <p><i class="icon">📮</i> {{ $t('邮编') }}：{{ leaderInfo.postcode || $t('暂未设置') }}</p>
           </div>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 介质过程强化团队. All rights reserved.</p>
+        <p>&copy; 2026 {{ $t('介质过程强化团队') }}. All rights reserved.</p>
       </div>
     </div>
   </footer>

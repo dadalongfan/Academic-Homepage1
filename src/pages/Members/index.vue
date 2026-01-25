@@ -1,11 +1,11 @@
 <template>
   <div class="members-page">
-    <h2 class="section-title">组内成员</h2>
+    <h2 class="section-title">{{ $t('members.title') }}</h2>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
-      <p>加载中...</p>
+      <p>{{ $t('common.loading') }}</p>
     </div>
 
     <!-- 错误提示 -->
@@ -20,7 +20,7 @@
     <template v-else>
       <!-- 指导教师 -->
       <div v-if="supervisors.length > 0" class="section-card">
-        <h3 class="subsection-title">指导教师</h3>
+        <h3 class="subsection-title">{{ $t('members.supervisors') }}</h3>
         <div v-for="member in supervisors" :key="member.id" class="teacher-card">
           <div class="teacher-photo">
             <img v-if="member.avatarUrl" :src="member.avatarUrl" :alt="member.name" />
@@ -30,7 +30,7 @@
             <h4>{{ member.name }}</h4>
             <p class="teacher-title">{{ member.role }}</p>
             <p v-if="member.bio" class="teacher-desc">{{ member.bio }}</p>
-            <p v-if="member.researchDirection" class="teacher-desc">研究方向：{{ member.researchDirection }}</p>
+            <p v-if="member.researchDirection" class="teacher-desc">{{ $t('members.researchDirection') }}：{{ member.researchDirection }}</p>
             <p v-if="member.email" class="teacher-desc">
               <el-icon><Message /></el-icon>
               {{ member.email }}
@@ -41,7 +41,7 @@
 
       <!-- 专任教师 -->
       <div v-if="fullTimeTeachers.length > 0" class="section-card">
-        <h3 class="subsection-title">专任教师</h3>
+        <h3 class="subsection-title">{{ $t('members.fullTimeTeachers') }}</h3>
         <div class="teachers-grid">
           <div v-for="member in fullTimeTeachers" :key="member.id" class="teacher-card-compact">
             <div class="teacher-avatar-small">
@@ -51,7 +51,7 @@
             <div class="teacher-info-compact">
               <h5>{{ member.name }}</h5>
               <p class="teacher-role">{{ member.role }}</p>
-              <p v-if="member.researchDirection" class="teacher-research">研究方向：{{ member.researchDirection }}</p>
+              <p v-if="member.researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ member.researchDirection }}</p>
               <p v-if="member.email" class="teacher-email">
                 <el-icon><Message /></el-icon>
                 {{ member.email }}
@@ -63,7 +63,7 @@
 
       <!-- 研究生 -->
       <div v-if="currentGraduates.length > 0" class="section-card">
-        <h3 class="subsection-title">研究生</h3>
+        <h3 class="subsection-title">{{ $t('members.graduates') }}</h3>
         <div class="members-grid">
           <div v-for="member in currentGraduates" :key="member.id" class="member-card">
             <div class="member-avatar">
@@ -79,11 +79,9 @@
         </div>
       </div>
 
-
-
       <!-- 校友 -->
       <div v-if="alumni.length > 0" class="section-card">
-        <h3 class="subsection-title">校友</h3>
+        <h3 class="subsection-title">{{ $t('members.alumni') }}</h3>
         <div class="teachers-grid">
           <div v-for="member in alumni" :key="member.id" class="teacher-card-compact">
             <div class="teacher-avatar-small">
@@ -93,7 +91,7 @@
             <div class="teacher-info-compact">
               <h5>{{ member.name }}</h5>
               <p class="teacher-role">{{ member.role }}</p>
-              <p v-if="member.researchDirection" class="teacher-research">研究方向：{{ member.researchDirection }}</p>
+              <p v-if="member.researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ member.researchDirection }}</p>
               <p v-if="member.email" class="teacher-email">
                 <el-icon><Message /></el-icon>
                 {{ member.email }}
@@ -106,7 +104,7 @@
       <!-- 空状态 -->
       <el-empty
         v-if="supervisors.length === 0 && fullTimeTeachers.length === 0 && currentGraduates.length === 0 && alumni.length === 0"
-        description="暂无成员数据"
+        :description="$t('members.noData')"
         :image-size="200"
       />
     </template>
@@ -117,11 +115,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { Loading, Message } from '@element-plus/icons-vue'
 import request from '@/utils/api'
+import { useTranslation } from '@/utils/i18n/useTranslation'
 
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
-const allMembers = ref([])
+
+// 使用通用翻译逻辑
+const {
+  originalData: originalMembers,
+  displayData: allMembers,
+  updateOriginalData
+} = useTranslation([], {
+  textFields: ['name', 'role', 'bio', 'researchDirection', 'honors']
+})
 
 // 分类数据
 const supervisors = computed(() => allMembers.value.filter(m => m.role === '指导教师'))
@@ -142,8 +149,9 @@ const loadMembers = async () => {
     const res = await request.get('/members/list')
 
     if (res.code === 200) {
-      allMembers.value = res.data || []
-      console.log('成员数据加载成功:', allMembers.value.length, '条')
+      const members = res.data || []
+      updateOriginalData(members)
+      console.log('成员数据加载成功:', members.length, '条')
     } else {
       error.value = res.message || '加载成员失败'
     }
@@ -152,7 +160,7 @@ const loadMembers = async () => {
     error.value = '加载成员失败，请检查后端服务是否启动'
 
     // 如果API调用失败，使用示例数据
-    allMembers.value = [
+    const exampleData = [
       {
         id: 1,
         name: '夏铭',
@@ -162,6 +170,7 @@ const loadMembers = async () => {
         researchDirection: '催化反应工程'
       }
     ]
+    updateOriginalData(exampleData)
   } finally {
     loading.value = false
   }

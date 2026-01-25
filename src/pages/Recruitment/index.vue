@@ -1,23 +1,23 @@
 <template>
   <div class="recruitment-page" v-loading="loading">
-    <h2 class="section-title">招贤纳士</h2>
+    <h2 class="section-title">{{ $t('recruitment.title') }}</h2>
 
     <!-- 欢迎标语 -->
     <div class="hero-banner">
       <div class="banner-content">
-        <h2>欢迎加入介质过程强化团队</h2>
-        <p>探索催化反应工程的奥秘，共创绿色化工的未来</p>
+        <h2>{{ $t('recruitment.welcome') }}</h2>
+        <p>{{ $t('recruitment.subtitle') }}</p>
       </div>
     </div>
 
     <!-- 招生专业 -->
-    <div v-if="recruitmentData['招生专业'] && recruitmentData['招生专业'].length > 0" class="section-card">
+    <div v-if="majors.length > 0" class="section-card">
       <h3 class="subsection-title">
         <el-icon><Reading /></el-icon>
-        招生专业
+        {{ $t('recruitment.majors') }}
       </h3>
       <div class="majors-grid">
-        <div v-for="(item, index) in recruitmentData['招生专业']" :key="index" class="major-card">
+        <div v-for="(item, index) in majors" :key="index" class="major-card">
           <div class="major-icon">🧪</div>
           <h4 v-html="item.title"></h4>
           <div v-html="item.content"></div>
@@ -26,13 +26,13 @@
     </div>
 
     <!-- 课题组优势 -->
-    <div v-if="recruitmentData['课题组优势'] && recruitmentData['课题组优势'].length > 0" class="section-card">
+    <div v-if="advantages.length > 0" class="section-card">
       <h3 class="subsection-title">
         <el-icon><Star /></el-icon>
-        课题组优势
+        {{ $t('recruitment.advantages') }}
       </h3>
       <div class="advantages-grid">
-        <div v-for="(item, index) in recruitmentData['课题组优势']" :key="index" class="advantage-item">
+        <div v-for="(item, index) in advantages" :key="index" class="advantage-item">
           <div class="advantage-number">{{ (index + 1).toString().padStart(2, '0') }}</div>
           <h4 v-html="item.title"></h4>
           <div v-html="item.content"></div>
@@ -41,13 +41,13 @@
     </div>
 
     <!-- 招生要求 -->
-    <div v-if="recruitmentData['招生要求'] && recruitmentData['招生要求'].length > 0" class="section-card">
+    <div v-if="requirements.length > 0" class="section-card">
       <h3 class="subsection-title">
         <el-icon><Document /></el-icon>
-        招生要求
+        {{ $t('recruitment.requirements') }}
       </h3>
       <div class="requirements-list">
-        <div v-for="(item, index) in recruitmentData['招生要求']" :key="index" class="requirement-item">
+        <div v-for="(item, index) in requirements" :key="index" class="requirement-item">
           <el-icon color="#67C23A"><CircleCheck /></el-icon>
           <span v-html="item.content"></span>
         </div>
@@ -55,29 +55,60 @@
     </div>
 
     <!-- 申请流程 -->
-    <div v-if="recruitmentData['申请流程'] && recruitmentData['申请流程'].length > 0" class="section-card">
+    <div v-if="process.length > 0" class="section-card">
       <h3 class="subsection-title">
         <el-icon><Operation /></el-icon>
-        申请流程
+        {{ $t('recruitment.process') }}
       </h3>
       <el-steps align-center>
-        <el-step v-for="(item, index) in recruitmentData['申请流程']" :key="index" :title="item.title" :description="item.content" status="process" />
+        <el-step v-for="(item, index) in process" :key="index" :title="item.title" :description="item.content" status="process" />
       </el-steps>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Reading, Star, Document, Operation, CircleCheck } from '@element-plus/icons-vue'
 import request from '/src/utils/api'
+import { useTranslation } from '@/utils/i18n/useTranslation'
 
 const loading = ref(false)
-const recruitmentData = reactive({
-  '招生专业': [],
-  '课题组优势': [],
-  '招生要求': [],
-  '申请流程': []
+
+// 为不同类别的招聘数据创建翻译逻辑
+const {
+  originalData: originalMajors,
+  displayData: majors,
+  updateOriginalData: updateMajors
+} = useTranslation([], {
+  textFields: ['title'],
+  htmlFields: ['content']
+})
+
+const {
+  originalData: originalAdvantages,
+  displayData: advantages,
+  updateOriginalData: updateAdvantages
+} = useTranslation([], {
+  textFields: ['title'],
+  htmlFields: ['content']
+})
+
+const {
+  originalData: originalRequirements,
+  displayData: requirements,
+  updateOriginalData: updateRequirements
+} = useTranslation([], {
+  htmlFields: ['content']
+})
+
+const {
+  originalData: originalProcess,
+  displayData: process,
+  updateOriginalData: updateProcess
+} = useTranslation([], {
+  textFields: ['title'],
+  htmlFields: ['content']
 })
 
 // 获取招聘信息
@@ -87,12 +118,33 @@ const fetchRecruitmentData = async () => {
     const res = await request.get('/recruitment/list')
     const data = res.data || []
     
-    // 按类别分组
+    // 按类别分组并更新到对应的数据中
+    const majorsData = []
+    const advantagesData = []
+    const requirementsData = []
+    const processData = []
+    
     data.forEach(item => {
-      if (recruitmentData[item.category]) {
-        recruitmentData[item.category].push(item)
+      switch (item.category) {
+        case '招生专业':
+          majorsData.push(item)
+          break
+        case '课题组优势':
+          advantagesData.push(item)
+          break
+        case '招生要求':
+          requirementsData.push(item)
+          break
+        case '申请流程':
+          processData.push(item)
+          break
       }
     })
+    
+    updateMajors(majorsData)
+    updateAdvantages(advantagesData)
+    updateRequirements(requirementsData)
+    updateProcess(processData)
   } catch (error) {
     console.error('获取招聘信息失败:', error)
   } finally {

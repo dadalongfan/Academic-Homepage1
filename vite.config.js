@@ -14,7 +14,7 @@ export default defineConfig({
     proxy: {
       // 将/uploads/请求转发到后端
       '/uploads': {
-        target: 'http://localhost:8082/api',
+        target: 'http://39.100.78.167:8801/api',
         changeOrigin: true,
         rewrite: (path) => path
       }

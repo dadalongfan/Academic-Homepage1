@@ -2,7 +2,24 @@
   <div class="publications-page">
     <h2 class="section-title">{{ $t('publications.title') }}</h2>
 
-    <!-- 阶段成就 -->
+    <!-- 翻译状态 -->
+    <div v-if="isTranslating" class="loading-container">
+      <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+      <p>{{ $t('common.loading') }}</p>
+    </div>
+
+    <!-- 研究方向 -->
+    <div v-else class="section-card">
+      <h3 class="subsection-title">研究方向</h3>
+      <div class="research-directions">
+        <div v-for="direction in researchDirections" :key="direction.id" class="direction-card">
+          <h4 class="direction-name">{{ direction.name }}</h4>
+          <p class="direction-desc">{{ direction.description }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阶段成就（暂时隐藏）
     <div class="section-card">
       <h3 class="subsection-title">{{ $t('publications.achievements') }}</h3>
       <div class="achievements-list">
@@ -28,6 +45,31 @@
         </div>
       </div>
     </div>
+    -->
+
+    <!-- 科研项目 -->
+    <div class="section-card">
+      <h3 class="subsection-title">{{ $t('projects.title') }}</h3>
+      <el-table :data="projects" style="width: 100%" stripe>
+        <el-table-column type="index" :label="$t('common.index')" width="60" />
+        <el-table-column prop="name" :label="$t('projects.name')" min-width="300" />
+        <el-table-column prop="role" :label="$t('projects.role')" width="100" align="center">
+          <template #default="scope">
+            <el-tag :type="scope.row.role === '主持' ? 'danger' : 'primary'" size="small">
+              {{ scope.row.role }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="type" :label="$t('projects.type')" width="100" align="center">
+          <template #default="scope">
+            <el-tag :type="getProjectLevelType(scope.row.type)" size="small">
+              {{ scope.row.type }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="period" :label="$t('projects.period')" width="180" />
+      </el-table>
+    </div>
 
     <!-- 代表论文 -->
     <div class="section-card">
@@ -39,10 +81,10 @@
             <div class="paper-header">
               <h4 class="paper-title">{{ paper.title }}</h4>
               <div class="paper-tags">
-                <el-tag v-if="paper.level === 'TOP'" type="danger" size="small">化工TOP</el-tag>
-                <el-tag v-else-if="paper.level === '2区'" type="warning" size="small">化学2区</el-tag>
-                <el-tag v-else type="info" size="small">EI</el-tag>
-              </div>
+              <el-tag v-if="paper.level === 'TOP'" type="danger" size="small">{{ $t('publications.topJournal') }}</el-tag>
+              <el-tag v-else-if="paper.level === '2区'" type="warning" size="small">{{ $t('publications.zone2') }}</el-tag>
+              <el-tag v-else type="info" size="small">{{ paper.level || 'EI' }}</el-tag>
+            </div>
             </div>
             <div class="paper-author">{{ paper.authors }}</div>
             <div class="paper-journal">
@@ -60,7 +102,7 @@
                 @click.prevent="handleDoiClick(paper.doi)"
               >
                 <el-icon><Link /></el-icon>
-                DOI链接
+                {{ $t('publications.doiLink') }}
               </a>
               <a 
                 v-if="paper.pdfUrl"
@@ -69,7 +111,7 @@
                 @click.prevent="handlePdfClick(paper.pdfUrl)"
               >
                 <el-icon><Download /></el-icon>
-                PDF下载
+                {{ $t('publications.pdfDownload') }}
               </a>
             </div>
           </div>
@@ -88,16 +130,16 @@
               <h4 class="patent-title">{{ patent.title }}</h4>
             </div>
             <div class="patent-meta">
-              <span class="patent-no">专利号：{{ patent.patentNumber }}</span>
+              <span class="patent-no">{{ $t('publications.patentNumber') }}：{{ patent.patentNumber }}</span>
               <span class="patent-date">{{ patent.authorizationDate }}</span>
             </div>
-            <div class="patent-inventors">发明人：{{ patent.inventors }}</div>
+            <div class="patent-inventors">{{ $t('publications.inventors') }}：{{ patent.inventors }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 代表奖励 -->
+    <!-- 代表奖励（暂时隐藏）
     <div class="section-card">
       <h3 class="subsection-title">{{ $t('publications.honors') }}</h3>
       <div class="honors-list">
@@ -118,63 +160,7 @@
         </div>
       </div>
     </div>
-
-    <!-- 合作伙伴 -->
-    <div class="section-card">
-      <h3 class="subsection-title">{{ $t('publications.partners') }}</h3>
-
-      <!-- 合作介绍 -->
-      <div class="intro-section">
-        <p class="intro-text">
-          {{ $t('publications.partnersIntro') }}
-        </p>
-      </div>
-
-      <!-- 合作单位 -->
-      <div class="partners-section">
-        <h4 class="section-subtitle">{{ $t('publications.collaborationUnits') }}</h4>
-        <div class="partners-grid">
-          <div v-for="(partner, index) in partners" :key="partner.id" class="partner-card">
-            <div class="partner-logo">
-              {{ partner.name?.charAt(0) || '合' }}
-            </div>
-            <h5 class="partner-name">{{ partner.name }}</h5>
-            <el-tag v-if="partner.cooperationType" :type="partner.cooperationType.includes('企业') ? 'success' : 'primary'" size="small">
-              {{ partner.cooperationType }}
-            </el-tag>
-          </div>
-        </div>
-      </div>
-
-      <!-- 合作领域 -->
-      <div class="areas-section">
-        <h4 class="section-subtitle">{{ $t('publications.collaborationAreas') }}</h4>
-        <div class="areas-grid">
-          <div class="area-item">
-            <div class="area-icon">🏭</div>
-            <h5>{{ $t('publications.area1Title') }}</h5>
-            <p>{{ $t('publications.area1Desc') }}</p>
-          </div>
-          <div class="area-item">
-            <div class="area-icon">🔬</div>
-            <h5>{{ $t('publications.area2Title') }}</h5>
-            <p>{{ $t('publications.area2Desc') }}</p>
-          </div>
-          <div class="area-item">
-            <div class="area-icon">⚙️</div>
-            <h5>{{ $t('publications.area3Title') }}</h5>
-            <p>{{ $t('publications.area3Desc') }}</p>
-          </div>
-          <div class="area-item">
-            <div class="area-icon">🔧</div>
-            <h5>{{ $t('publications.area4Title') }}</h5>
-            <p>{{ $t('publications.area4Desc') }}</p>
-          </div>
-        </div>
-      </div>
-
-
-    </div>
+    -->
 
     <!-- 发表论文统计 -->
     <div class="section-card">
@@ -213,9 +199,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Link, Download, Trophy } from '@element-plus/icons-vue'
-import request from '@/utils/api'
+import { ref, onMounted, computed } from 'vue'
+import { Link, Download, Trophy, Loading } from '@element-plus/icons-vue'
+import { getFullFileUrl } from '@/utils/api'
+import { publicationsApi, projectsApi } from '@/api'
 import { useTranslation } from '@/utils/i18n/useTranslation'
 
 // 响应式数据
@@ -226,7 +213,8 @@ const error = ref('')
 const {
   originalData: originalAchievements,
   displayData: achievements,
-  updateOriginalData: updateAchievements
+  updateOriginalData: updateAchievements,
+  isTranslating: isTranslatingAchievements
 } = useTranslation([], {
   textFields: ['title', 'description', 'tags']
 })
@@ -235,7 +223,8 @@ const {
 const {
   originalData: originalPapers,
   displayData: papers,
-  updateOriginalData: updatePapers
+  updateOriginalData: updatePapers,
+  isTranslating: isTranslatingPapers
 } = useTranslation([], {
   textFields: ['title', 'authors', 'journal']
 })
@@ -244,7 +233,8 @@ const {
 const {
   originalData: originalPatents,
   displayData: patents,
-  updateOriginalData: updatePatents
+  updateOriginalData: updatePatents,
+  isTranslating: isTranslatingPatents
 } = useTranslation([], {
   textFields: ['title', 'inventors']
 })
@@ -253,19 +243,52 @@ const {
 const {
   originalData: originalHonors,
   displayData: honors,
-  updateOriginalData: updateHonors
+  updateOriginalData: updateHonors,
+  isTranslating: isTranslatingHonors
 } = useTranslation([], {
-  textFields: ['title']
+  textFields: ['title', 'awardLevel']
 })
 
-// 合作伙伴
+// 科研项目
 const {
-  originalData: originalPartners,
-  displayData: partners,
-  updateOriginalData: updatePartners
+  originalData: originalProjects,
+  displayData: projects,
+  updateOriginalData: updateProjects,
+  isTranslating: isTranslatingProjects
 } = useTranslation([], {
-  textFields: ['name', 'cooperationType']
+  textFields: ['name', 'role', 'type']
 })
+
+// 研究方向
+const {
+  originalData: originalResearchDirections,
+  displayData: researchDirections,
+  updateOriginalData: updateResearchDirections,
+  isTranslating: isTranslatingResearchDirections
+} = useTranslation([], {
+  textFields: ['name', 'description']
+})
+
+// 计算是否正在翻译
+const isTranslating = computed(() =>
+  isTranslatingAchievements.value ||
+  isTranslatingPapers.value ||
+  isTranslatingPatents.value ||
+  isTranslatingHonors.value ||
+  isTranslatingProjects.value ||
+  isTranslatingResearchDirections.value
+)
+
+// 获取项目级别标签类型
+const getProjectLevelType = (type) => {
+  const typeMap = {
+    '国家级': 'danger',
+    '省部级': 'warning',
+    '部委级': 'success',
+    '省级': 'warning'
+  }
+  return typeMap[type] || 'info'
+}
 
 // 获取荣誉标签类型
 const getHonorTagType = (level) => {
@@ -291,8 +314,10 @@ const handleDoiClick = (doi) => {
 // 处理PDF点击
 const handlePdfClick = (pdfUrl) => {
   if (pdfUrl) {
+    // 使用getFullFileUrl处理PDF链接，确保路径正确
+    const fullPdfUrl = getFullFileUrl(pdfUrl)
     // 使用location.href代替window.open，避免被浏览器阻止
-    location.href = pdfUrl
+    location.href = fullPdfUrl
   }
 }
 
@@ -303,20 +328,28 @@ const loadAllData = async () => {
     error.value = ''
 
     // 并行加载所有数据
-    const [achievementsRes, papersRes, patentsRes, honorsRes, partnersRes] = await Promise.all([
-      request.get('/achievements/list').catch(() => ({ data: [] })),
-      request.get('/papers/list').catch(() => ({ data: [] })),
-      request.get('/patents/list').catch(() => ({ data: [] })),
-      request.get('/honors/list').catch(() => ({ data: [] })),
-      request.get('/partners/list').catch(() => ({ data: [] }))
+    const [directionsRes, achievementsRes, papersRes, patentsRes, honorsRes, projectsRes] = await Promise.all([
+      publicationsApi.getResearchDirections(),
+      publicationsApi.getAchievements(),
+      publicationsApi.getPapers(),
+      publicationsApi.getPatents(),
+      publicationsApi.getHonors(),
+      projectsApi.getList()
     ])
 
     // 设置数据
+    updateResearchDirections(directionsRes.data || [])
     updateAchievements(achievementsRes.data || [])
     updatePapers(papersRes.data || [])
     updatePatents(patentsRes.data || [])
     updateHonors(honorsRes.data || [])
-    updatePartners(partnersRes.data || [])
+
+    // 处理项目数据
+    const processedProjects = (projectsRes.data || []).map(project => ({
+      ...project,
+      period: `${project.startDate} -- ${project.endDate}`
+    }))
+    updateProjects(processedProjects)
     
     // 调试：打印论文数据
     console.log('论文数据:', papers.value)
@@ -366,8 +399,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import '/src/assets/styles/variables.css';
-@import '/src/assets/styles/common.css';
+@import '../../assets/styles/variables.css';
+@import '../../assets/styles/common.css';
 
 .publications-page {
   animation: fadeIn 0.5s ease-in;
@@ -498,6 +531,40 @@ onMounted(() => {
   gap: 8px;
   flex-wrap: wrap;
   margin-top: var(--spacing-sm);
+}
+
+/* 研究方向样式 */
+.research-directions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.direction-card {
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary-color);
+  transition: all 0.3s ease;
+}
+
+.direction-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.direction-name {
+  font-size: 20px;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+.direction-desc {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
 }
 
 .papers-list,

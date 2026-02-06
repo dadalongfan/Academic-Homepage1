@@ -1,6 +1,6 @@
 import { ref, reactive, watch, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getBatchTranslation, translateHTML } from './translationService'
+import { getBatchTranslation, translateHTML, clearInvalidCache } from './translationService'
 
 /**
  * 通用翻译组合式函数
@@ -40,9 +40,12 @@ export function useTranslation(initialData, config = {}) {
     
     // 翻译文本字段
     for (const field of defaultConfig.textFields) {
-      if (translatedObj[field] !== undefined) {
-        translatedObj[field] = await getBatchTranslation([translatedObj[field]], source, target)
-        translatedObj[field] = translatedObj[field][0]
+      if (translatedObj[field] !== undefined && translatedObj[field] !== null && translatedObj[field] !== '') {
+        // 直接翻译单个文本，而不是使用批量翻译，确保每个文本都能被正确翻译
+        const text = translatedObj[field]
+        const translatedText = await getBatchTranslation([text], source, target)
+        translatedObj[field] = translatedText[0] || text
+        console.log(`翻译字段 ${field}:`, { original: text, translated: translatedObj[field] })
       }
     }
     
@@ -83,9 +86,111 @@ export function useTranslation(initialData, config = {}) {
     if (!Array.isArray(array)) {
       return array
     }
-    return Promise.all(
-      array.map(item => translateObject(item, source, target))
+    
+    // 收集所有需要翻译的文本和HTML，一次性发送
+    const allTexts = []
+    const textMap = new Map() // 存储文本与位置的映射
+    const allHTMLs = []
+    const htmlMap = new Map() // 存储HTML与位置的映射
+    
+    // 遍历数组，收集所有需要翻译的文本和HTML
+    array.forEach((item, itemIndex) => {
+      if (typeof item === 'object' && item !== null) {
+        // 收集文本字段
+        defaultConfig.textFields.forEach(field => {
+          if (item[field] !== undefined && item[field] !== null && item[field] !== '') {
+            const text = item[field]
+            const key = `${itemIndex}-${field}`
+            allTexts.push(text)
+            textMap.set(allTexts.length - 1, { itemIndex, field, text })
+          }
+        })
+        
+        // 收集HTML字段
+        defaultConfig.htmlFields.forEach(field => {
+          if (item[field] !== undefined && item[field] !== null && item[field] !== '') {
+            const html = item[field]
+            const key = `${itemIndex}-${field}`
+            allHTMLs.push(html)
+            htmlMap.set(allHTMLs.length - 1, { itemIndex, field, html })
+          }
+        })
+      }
+    })
+    
+    // 批量翻译所有文本
+    let translatedTexts = []
+    if (allTexts.length > 0) {
+      translatedTexts = await getBatchTranslation(allTexts, source, target)
+      console.log('批量翻译文本结果:', { allTexts, translatedTexts })
+    }
+    
+    // 批量翻译所有HTML
+    let translatedHTMLs = []
+    if (allHTMLs.length > 0) {
+      // 收集HTML中的纯文本内容进行批量翻译
+      const htmlTexts = allHTMLs.map(html => {
+        const textContent = html.replace(/<[^>]+>/g, '').trim()
+        return textContent
+      })
+      
+      if (htmlTexts.some(text => text.length > 0)) {
+        translatedHTMLs = await getBatchTranslation(htmlTexts, source, target)
+        console.log('批量翻译HTML文本结果:', { htmlTexts, translatedHTMLs })
+      }
+    }
+    
+    // 将翻译结果映射回原始数组
+    const translatedArray = JSON.parse(JSON.stringify(array))
+    
+    // 处理文本翻译结果
+    textMap.forEach(({ itemIndex, field, text }, textIndex) => {
+      const translatedText = translatedTexts[textIndex] || text
+      translatedArray[itemIndex][field] = translatedText
+      console.log(`数组项 ${itemIndex} 字段 ${field}:`, { original: text, translated: translatedText })
+    })
+    
+    // 处理HTML翻译结果
+    htmlMap.forEach(({ itemIndex, field, html }, htmlIndex) => {
+      const translatedHTML = translatedHTMLs[htmlIndex]
+      if (translatedHTML) {
+        // 直接使用翻译后的完整HTML
+        translatedArray[itemIndex][field] = translatedHTML
+        console.log(`数组项 ${itemIndex} 字段 ${field} (HTML):`, { original: html.substring(0, 50) + '...', translated: translatedHTML.substring(0, 50) + '...' })
+      }
+    })
+    
+    // 处理数组字段和嵌套对象
+    // 使用Promise.all处理所有异步操作
+    const translatedResults = await Promise.all(
+      translatedArray.map(async (item) => {
+        const translatedItem = { ...item }
+        
+        // 处理数组字段
+        for (const field of defaultConfig.arrayFields) {
+          if (Array.isArray(translatedItem[field])) {
+            translatedItem[field] = await translateArray(translatedItem[field], source, target)
+          }
+        }
+        
+        // 处理嵌套对象
+        if (defaultConfig.recursive) {
+          for (const key in translatedItem) {
+            if (typeof translatedItem[key] === 'object' && translatedItem[key] !== null && 
+                !Array.isArray(translatedItem[key]) &&
+                !defaultConfig.textFields.includes(key) &&
+                !defaultConfig.htmlFields.includes(key) &&
+                !defaultConfig.arrayFields.includes(key)) {
+              translatedItem[key] = await translateObject(translatedItem[key], source, target)
+            }
+          }
+        }
+        
+        return translatedItem
+      })
     )
+    
+    return translatedResults
   }
   
   // 翻译数据
@@ -105,7 +210,7 @@ export function useTranslation(initialData, config = {}) {
   // 处理数据翻译
   const handleTranslation = async () => {
     if (currentLocale.value === 'zh') {
-      // 中文直接使用原始数据
+      // 中文直接使用原始数据，不翻译
       displayData.value = JSON.parse(JSON.stringify(originalData.value))
       return
     }
@@ -118,7 +223,12 @@ export function useTranslation(initialData, config = {}) {
   // 更新原始数据
   const updateOriginalData = (newData) => {
     originalData.value = newData
-    handleTranslation()
+    // 清除翻译缓存，确保使用最新的数据
+    if (currentLocale.value === 'zh') {
+      // 中文模式下，清除可能存在的错误缓存
+      clearInvalidCache()
+    }
+    return handleTranslation()
   }
   
   // 监听语言变化

@@ -2,21 +2,27 @@
   <div class="gallery-page">
     <h2 class="section-title">{{ $t('gallery.title') }}</h2>
 
-    <!-- 遍历分类显示相册 -->
-    <div v-for="category in categories" :key="category.id" class="section-card">
+    <!-- 翻译状态 -->
+    <div v-if="isTranslating" class="loading-container">
+      <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+      <p>{{ $t('common.loading') }}</p>
+    </div>
+
+    <!-- 遍历分类显示相册（只显示有图片的分类） -->
+    <div v-else v-for="category in categoriesWithImages" :key="category.id" class="section-card">
       <div class="section-header">
         <h3 class="subsection-title">{{ category.name }}</h3>
         <el-button
-          :icon="sectionStates[category.name] ? ArrowUp : ArrowDown"
+          :icon="sectionStates[category.id] ? ArrowUp : ArrowDown"
           circle
           size="small"
-          @click="toggleSection(category.name)"
+          @click="toggleSection(category.id)"
           class="toggle-btn"
         />
       </div>
 
       <transition name="section-collapse">
-        <div v-show="sectionStates[category.name]" class="gallery-grid">
+        <div v-show="sectionStates[category.id]" class="gallery-grid">
           <el-empty
             v-if="getCategoryImages(category.id).length === 0"
             :description="$t('gallery.noImages')"
@@ -101,19 +107,32 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Picture, Trophy, User, ArrowUp, ArrowDown, ZoomIn, Close } from '@element-plus/icons-vue'
-import request from '../../utils/api'
+import { Picture, Trophy, User, ArrowUp, ArrowDown, ZoomIn, Close, Loading } from '@element-plus/icons-vue'
+import { galleryApi } from '../../api'
+import { API_BASE_URL } from '../../config'
 import { useTranslation } from '@/utils/i18n/useTranslation'
 
 const loading = ref(false)
 const imageModalVisible = ref(false)
 const selectedImage = ref({})
 
+// 计算是否正在翻译
+const isTranslating = computed(() => isTranslatingCategories.value || isTranslatingImages.value)
+
+// 只返回有图片的分类
+const categoriesWithImages = computed(() => {
+  return categories.value.filter(category => {
+    const categoryImages = images.value[category.id] || []
+    return categoryImages.length > 0
+  })
+})
+
 // 使用通用翻译逻辑处理分类
 const {
   originalData: originalCategories,
   displayData: categories,
-  updateOriginalData: updateCategories
+  updateOriginalData: updateCategories,
+  isTranslating: isTranslatingCategories
 } = useTranslation([], {
   textFields: ['name']
 })
@@ -125,7 +144,8 @@ const images = ref({})
 const {
   originalData: originalImages,
   displayData: allImages,
-  updateOriginalData: updateAllImages
+  updateOriginalData: updateAllImages,
+  isTranslating: isTranslatingImages
 } = useTranslation([], {
   textFields: ['description']
 })
@@ -137,8 +157,8 @@ const loadGalleryData = async () => {
 
     // 并行加载分类和图片数据
     const [categoriesRes, allImagesRes] = await Promise.all([
-      request.get('/gallery-categories/list'),
-      request.get('/gallery-images/list')
+      galleryApi.getCategories(),
+      galleryApi.getImages()
     ])
 
     // 更新分类数据
@@ -146,10 +166,19 @@ const loadGalleryData = async () => {
     updateCategories(categoriesData)
     console.log('分类数据:', categoriesData)
 
-    // 更新所有图片数据
+    // 更新所有图片数据，等待翻译完成
     const allImagesData = allImagesRes.data || []
-    updateAllImages(allImagesData)
-    console.log('图片数据:', allImagesData)
+    
+    // 处理图片URL，转换为完整URL
+    const processedImagesData = allImagesData.map(image => {
+      if (image.imageUrl && !image.imageUrl.startsWith('http://') && !image.imageUrl.startsWith('https://')) {
+        image.imageUrl = `${API_BASE_URL}${image.imageUrl}`
+      }
+      return image
+    })
+    
+    await updateAllImages(processedImagesData)
+    console.log('图片数据:', processedImagesData)
 
     // 按分类组织图片数据
     const imagesByCategory = {}
@@ -171,8 +200,9 @@ const loadGalleryData = async () => {
 
     // 初始化分类展开状态
     categories.value.forEach(category => {
-      if (!sectionStates.value[category.name]) {
-        sectionStates.value[category.name] = true
+      // 默认都展开
+      if (sectionStates.value[category.id] === undefined) {
+        sectionStates.value[category.id] = true
       }
     })
   } catch (error) {
@@ -183,16 +213,11 @@ const loadGalleryData = async () => {
 }
 
 // 栏目展开/收起状态
-const sectionStates = ref({
-  '学术会议': true,
-  '团队活动': true,
-  '获奖荣誉': true,
-  '毕业留念': true
-})
+const sectionStates = ref({})
 
 // 切换栏目显示状态
-const toggleSection = (section) => {
-  sectionStates.value[section] = !sectionStates.value[section]
+const toggleSection = (categoryId) => {
+  sectionStates.value[categoryId] = !sectionStates.value[categoryId]
 }
 
 // 获取分类对应的图片

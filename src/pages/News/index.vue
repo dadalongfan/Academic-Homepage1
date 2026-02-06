@@ -1,6 +1,6 @@
 <template>
   <div class="news-page">
-    <h2 class="page-title">新闻动态</h2>
+    <h2 class="page-title">{{ $t('news') }}</h2>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
@@ -17,9 +17,13 @@
       class="error-alert"
     />
 
+    <!-- 翻译状态 -->
+    <div v-else-if="isTranslating" class="loading-container">
+      <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+      <p>翻译中...</p>
+    </div>
+
     <template v-else>
-
-
       <!-- 新闻列表 -->
       <div class="news-list">
         <div
@@ -52,7 +56,7 @@
                 <el-icon><FolderOpened /></el-icon>
                 {{ news.category || '未分类' }}
               </span>
-              <span class="news-more">查看详情 <el-icon><ArrowRight /></el-icon></span>
+              <span class="news-more">{{ displayMoreText }} <el-icon><ArrowRight /></el-icon></span>
             </div>
           </div>
         </div>
@@ -69,14 +73,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ArrowRight, FolderOpened, Loading } from '@element-plus/icons-vue'
-import request from '@/utils/api'
+import { newsApi } from '@/api'
+import i18n from '/src/utils/i18n'
 import { useTranslation } from '/src/utils/i18n/useTranslation'
 
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
+const displayMoreText = ref('查看详情')
+const selectedYear = ref(null)
+
+// 监听语言变化
+watch(() => i18n.global.locale.value, (newLocale) => {
+  displayMoreText.value = newLocale === 'en' ? 'View Details' : '查看详情'
+}, { immediate: true })
 
 // 使用通用翻译逻辑
 const { 
@@ -90,8 +102,18 @@ const {
   arrayFields: []
 })
 
-// 新闻列表
-const filteredNews = computed(() => newsList.value)
+// 新闻列表 - 根据年份筛选
+const filteredNews = computed(() => {
+  if (!selectedYear.value) {
+    return newsList.value
+  }
+  return newsList.value.filter(news => {
+    if (news.publishDate) {
+      return new Date(news.publishDate).getFullYear() === parseInt(selectedYear.value)
+    }
+    return false
+  })
+})
 
 // 辅助函数
 const getYear = (dateStr) => {
@@ -121,7 +143,16 @@ const getCategoryType = (category) => {
 
 // 跳转到详情页
 const goToDetail = (id) => {
-  window.location.href = `/news-detail.html?id=${id}`
+  window.location.href = `./news-detail.html?id=${id}`
+}
+
+// 清除年份筛选
+const clearYearFilter = () => {
+  selectedYear.value = null
+  // 清除URL参数
+  const url = new URL(window.location.href)
+  url.searchParams.delete('year')
+  window.history.replaceState({}, '', url)
 }
 
 // 获取纯文本并截断
@@ -147,7 +178,7 @@ const loadNews = async () => {
     loading.value = true
     error.value = ''
 
-    const res = await request.get('/news/list')
+    const res = await newsApi.getList()
 
     let newsData = []
     if (res.code === 200) {
@@ -187,6 +218,13 @@ const loadNews = async () => {
 
 // 组件挂载时加载数据
 onMounted(() => {
+  // 从URL参数获取年份
+  const urlParams = new URLSearchParams(window.location.search)
+  const year = urlParams.get('year')
+  if (year) {
+    selectedYear.value = year
+  }
+  
   loadNews()
 })
 </script>
@@ -211,6 +249,13 @@ onMounted(() => {
   color: var(--primary-color);
   margin-bottom: 40px;
   font-weight: 300;
+}
+
+.year-filter {
+  max-width: 900px;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: center;
 }
 
 .news-list {

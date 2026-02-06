@@ -1,9 +1,15 @@
 <template>
-  <div class="recruitment-page" v-loading="loading">
+  <div class="recruitment-page">
     <h2 class="section-title">{{ $t('recruitment.title') }}</h2>
 
+    <!-- 翻译状态 -->
+    <div v-if="isTranslating" class="loading-container">
+      <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+      <p>{{ $t('common.loading') }}</p>
+    </div>
+
     <!-- 欢迎标语 -->
-    <div class="hero-banner">
+    <div v-else class="hero-banner">
       <div class="banner-content">
         <h2>{{ $t('recruitment.welcome') }}</h2>
         <p>{{ $t('recruitment.subtitle') }}</p>
@@ -68,54 +74,69 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Reading, Star, Document, Operation, CircleCheck } from '@element-plus/icons-vue'
-import request from '/src/utils/api'
+import { ref, onMounted, computed } from 'vue'
+import { Reading, Star, Document, Operation, CircleCheck, Loading } from '@element-plus/icons-vue'
+import { recruitmentApi } from '/src/api'
 import { useTranslation } from '@/utils/i18n/useTranslation'
 
 const loading = ref(false)
 
-// 为不同类别的招聘数据创建翻译逻辑
+// 招生专业
 const {
   originalData: originalMajors,
   displayData: majors,
-  updateOriginalData: updateMajors
+  updateOriginalData: updateMajors,
+  isTranslating: isTranslatingMajors
 } = useTranslation([], {
   textFields: ['title'],
   htmlFields: ['content']
 })
 
+// 课题组优势
 const {
   originalData: originalAdvantages,
   displayData: advantages,
-  updateOriginalData: updateAdvantages
+  updateOriginalData: updateAdvantages,
+  isTranslating: isTranslatingAdvantages
 } = useTranslation([], {
   textFields: ['title'],
   htmlFields: ['content']
 })
 
+// 招生要求
 const {
   originalData: originalRequirements,
   displayData: requirements,
-  updateOriginalData: updateRequirements
+  updateOriginalData: updateRequirements,
+  isTranslating: isTranslatingRequirements
 } = useTranslation([], {
   htmlFields: ['content']
 })
 
+// 申请流程
 const {
   originalData: originalProcess,
   displayData: process,
-  updateOriginalData: updateProcess
+  updateOriginalData: updateProcess,
+  isTranslating: isTranslatingProcess
 } = useTranslation([], {
   textFields: ['title'],
   htmlFields: ['content']
 })
+
+// 计算是否正在翻译
+const isTranslating = computed(() => 
+  isTranslatingMajors.value || 
+  isTranslatingAdvantages.value || 
+  isTranslatingRequirements.value || 
+  isTranslatingProcess.value
+)
 
 // 获取招聘信息
 const fetchRecruitmentData = async () => {
   try {
     loading.value = true
-    const res = await request.get('/recruitment/list')
+    const res = await recruitmentApi.getList()
     const data = res.data || []
     
     // 按类别分组并更新到对应的数据中

@@ -1,9 +1,9 @@
 <template>
   <div class="news-detail">
     <!-- 返回按钮 -->
-    <div class="back-section">
-      <el-button @click="goBack" type="default" icon="ArrowLeft">返回列表</el-button>
-    </div>
+<div class="back-section">
+  <el-button @click="goBack" type="default" icon="ArrowLeft">{{ backButtonText }}</el-button>
+</div>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
@@ -20,23 +20,23 @@
       class="error-alert"
     />
 
-    <template v-else-if="news">
+    <template v-else-if="translatedNews">
       <!-- 新闻详情 -->
       <div class="news-content">
-        <h1 class="news-title">{{ news.title }}</h1>
+        <h1 class="news-title">{{ translatedNews.title }}</h1>
         
         <div class="news-meta">
           <span class="news-date">
             <el-icon><Calendar /></el-icon>
-            {{ news.publishDate }}
+            {{ translatedNews.publishDate }}
           </span>
-          <el-tag :type="getCategoryType(news.category)">
-            {{ news.category || '未分类' }}
+          <el-tag :type="getCategoryType(translatedNews.category)">
+            {{ translatedNews.category || '未分类' }}
           </el-tag>
-          <el-tag v-if="news.isImportant" type="danger">重要</el-tag>
+          <el-tag v-if="translatedNews.isImportant" type="danger">重要</el-tag>
         </div>
 
-        <div class="news-body" v-html="news.content"></div>
+        <div class="news-body" v-html="translatedNews.content"></div>
       </div>
     </template>
 
@@ -50,14 +50,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { ArrowLeft, Calendar, Loading } from '@element-plus/icons-vue'
-import request from '@/utils/api'
+import { newsApi } from '@/api'
+import i18n from '/src/utils/i18n'
+import { useTranslation } from '/src/utils/i18n/useTranslation'
 
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
 const news = ref(null)
+const backButtonText = ref('返回列表')
+
+// 监听语言变化
+watch(() => i18n.global.locale.value, (newLocale) => {
+  backButtonText.value = newLocale === 'en' ? 'Back to List' : '返回列表'
+}, { immediate: true })
+
+// 使用通用翻译逻辑
+const { 
+  originalData: originalNews, 
+  displayData: translatedNews, 
+  updateOriginalData,
+  isTranslating 
+} = useTranslation({}, {
+  textFields: ['title', 'category'],
+  htmlFields: ['content'],
+  arrayFields: []
+})
+
+// 监听新闻数据变化，更新原始数据以触发翻译
+watch(news, (newNews) => {
+  if (newNews) {
+    updateOriginalData(newNews)
+  }
+}, { immediate: true })
 
 // 辅助函数
 const getCategoryType = (category) => {
@@ -96,7 +123,7 @@ const loadNewsDetail = async () => {
       throw new Error('新闻ID不存在')
     }
 
-    const res = await request.get(`/news/${newsId}`)
+    const res = await newsApi.getDetail(newsId)
 
     if (res.code === 200) {
       news.value = res.data

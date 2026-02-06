@@ -1,45 +1,138 @@
 <template>
   <header class="header">
-    <!-- Logo横幅 -->
+    <!-- Logo横幅 - 文字重叠在图片上方，语言切换在右侧 -->
     <div class="logo-banner">
-      <img src="/logo.png" alt="Logo" class="logo-banner-image" />
+      <div class="banner-wrapper">
+        <!-- 左侧：文字重叠在图片上 -->
+        <div class="banner-left">
+          <!-- 文字重叠在图片左侧 -->
+          <div class="banner-title">
+            <h1 class="site-title">
+              介质过程强化团队
+              <span class="site-title-en">Mater Process Intensification Group</span>
+            </h1>
+            <p class="site-slogan">
+              我们的事业，化工的未来
+              <span class="site-slogan-en">Our Specialty, ChEng in Future</span>
+            </p>
+          </div>
+          <!-- 图片 -->
+          <img src="/logo.png" alt="Logo" class="logo-banner-image" />
+        </div>
+        <!-- 右侧：语言切换按钮 -->
+        <div class="banner-language">
+          <button 
+            class="language-btn" 
+            :class="{ active: currentLocale === 'en' }"
+            @click="switchLanguage('en')"
+          >
+            EN
+          </button>
+          <button 
+            class="language-btn" 
+            :class="{ active: currentLocale === 'zh' }"
+            @click="switchLanguage('zh')"
+          >
+            中
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- 标题和导航区域 -->
+    <!-- 导航区域 -->
     <div class="header-content">
       <div class="header-container">
-        <div class="header-left">
-          <h1 class="site-title">{{ $t('介质过程强化团队') }}</h1>
-          <p class="site-subtitle">{{ $t('南京工业大学化工学院 · 材料化学工程国家重点实验室') }}</p>
-        </div>
-        <div class="header-right">
-          <nav class="nav">
-            <a href="/index.html" class="nav-item" :class="{ active: currentPage === 'home' }">{{ $t('home') }}</a>
-            <a href="/news.html" class="nav-item" :class="{ active: currentPage === 'news' }">{{ $t('news') }}</a>
-            <a href="/members.html" class="nav-item" :class="{ active: currentPage === 'members' }">{{ $t('members') }}</a>
-            <a href="/publications.html" class="nav-item" :class="{ active: currentPage === 'publications' }">{{ $t('publications') }}</a>
-            <!-- <a href="/partners.html" class="nav-item" :class="{ active: currentPage === 'partners' }">合作伙伴</a>-->
-            <a href="/projects.html" class="nav-item" :class="{ active: currentPage === 'projects' }">{{ $t('projects') }}</a>
-            <a href="/gallery.html" class="nav-item" :class="{ active: currentPage === 'gallery' }">{{ $t('gallery') }}</a>
-            <a href="/recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">{{ $t('recruitment') }}</a>
-          </nav>
-          <div class="language-switcher">
-            <button 
-              class="language-btn" 
-              :class="{ active: currentLocale === 'zh' }"
-              @click="switchLanguage('zh')"
-            >
-              中文
-            </button>
-            <button 
-              class="language-btn" 
-              :class="{ active: currentLocale === 'en' }"
-              @click="switchLanguage('en')"
-            >
-              English
-            </button>
+        <nav class="nav">
+          <a href="./index.html" class="nav-item" :class="{ active: currentPage === 'home' }">{{ $t('home') }}</a>
+          
+          <!-- 新闻动态下拉菜单 -->
+          <div 
+            class="nav-item has-dropdown" 
+            :class="{ active: currentPage === 'news' }"
+            @mouseenter="showNewsDropdown = true"
+            @mouseleave="showNewsDropdown = false"
+          >
+            <a href="./news.html" class="nav-link">{{ $t('news') }}</a>
+            <transition name="dropdown">
+              <ul v-show="showNewsDropdown" class="dropdown-menu">
+                <li><a href="./news.html" class="dropdown-item">{{ $t('news.latest') }}</a></li>
+                <li v-for="year in newsYears" :key="year">
+                  <a :href="`./news.html?year=${year}`" class="dropdown-item">{{ year }}{{ $t('news.year') }}</a>
+                </li>
+              </ul>
+            </transition>
           </div>
-        </div>
+          
+          <!-- 团队成员下拉菜单 -->
+          <div 
+            class="nav-item has-dropdown" 
+            :class="{ active: currentPage === 'members' }"
+            @mouseenter="showMembersDropdown = true"
+            @mouseleave="showMembersDropdown = false"
+          >
+            <a href="./members.html" class="nav-link">{{ $t('members') }}</a>
+            <transition name="dropdown">
+              <ul v-show="showMembersDropdown" class="dropdown-menu">
+                <li><a href="./members.html" class="dropdown-item">{{ $t('members.all') }}</a></li>
+                <li v-for="role in memberRoles" :key="role.id">
+                  <a :href="`./members.html?role=${role.id}`" class="dropdown-item">{{ role.name }}</a>
+                </li>
+              </ul>
+            </transition>
+          </div>
+          
+          <!-- 研究下拉菜单 -->
+          <div
+            class="nav-item has-dropdown"
+            :class="{ active: currentPage === 'publications' }"
+            @mouseenter="showPublicationsDropdown = true"
+            @mouseleave="showPublicationsDropdown = false"
+          >
+            <a href="./publications.html" class="nav-link">{{ $t('publications') }}</a>
+            <transition name="dropdown">
+              <ul v-show="showPublicationsDropdown" class="dropdown-menu">
+                <li><a href="./publications.html" class="dropdown-item">研究方向</a></li>
+                <li><a href="./publications.html?section=projects" class="dropdown-item">代表项目</a></li>
+                <li><a href="./publications.html?section=patents" class="dropdown-item">代表专利</a></li>
+                <li><a href="./publications.html?section=papers" class="dropdown-item">代表论文</a></li>
+              </ul>
+            </transition>
+          </div>
+
+          <!-- 应用开发下拉菜单 -->
+          <div
+            class="nav-item has-dropdown"
+            :class="{ active: currentPage === 'projects' }"
+            @mouseenter="showProjectsDropdown = true"
+            @mouseleave="showProjectsDropdown = false"
+          >
+            <a href="./projects.html" class="nav-link">{{ $t('projects') }}</a>
+            <transition name="dropdown">
+              <ul v-show="showProjectsDropdown" class="dropdown-menu">
+                <li><a href="./projects.html?tab=expertise" class="dropdown-item">{{ $t('projects.expertise') }}</a></li>
+                <li><a href="./projects.html?tab=partners" class="dropdown-item">{{ $t('projects.partners') }}</a></li>
+              </ul>
+            </transition>
+          </div>
+          <!-- 文化下拉菜单 -->
+          <div
+            class="nav-item has-dropdown"
+            :class="{ active: currentPage === 'gallery' }"
+            @mouseenter="showGalleryDropdown = true"
+            @mouseleave="showGalleryDropdown = false"
+          >
+            <a href="./gallery.html" class="nav-link">{{ $t('gallery') }}</a>
+            <transition name="dropdown">
+              <ul v-show="showGalleryDropdown" class="dropdown-menu">
+                <li><a href="./gallery.html" class="dropdown-item">全部</a></li>
+                <li v-for="category in galleryCategories" :key="category.id">
+                  <a :href="`./gallery.html?category=${category.id}`" class="dropdown-item">{{ category.name }}</a>
+                </li>
+              </ul>
+            </transition>
+          </div>
+          <a href="./recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">{{ $t('recruitment') }}</a>
+        </nav>
       </div>
     </div>
   </header>
@@ -49,10 +142,25 @@
 import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import i18n from '../utils/i18n'
+import { newsApi, membersApi, galleryApi } from '../api'
 
 const currentPage = ref('')
 const { locale } = useI18n()
 const currentLocale = ref(locale.value)
+
+// 下拉菜单显示状态
+const showNewsDropdown = ref(false)
+const showMembersDropdown = ref(false)
+const showProjectsDropdown = ref(false)
+const showGalleryDropdown = ref(false)
+const showPublicationsDropdown = ref(false)
+
+// 新闻年份列表
+const newsYears = ref([])
+// 成员角色列表
+const memberRoles = ref([])
+// 相册分类列表
+const galleryCategories = ref([])
 
 // 监听语言变化，更新currentLocale
 watch(locale, (newValue) => {
@@ -62,6 +170,61 @@ watch(locale, (newValue) => {
 const switchLanguage = (lang) => {
   // 使用我们自定义的i18n实例的switchLanguage方法
   i18n.global.switchLanguage(lang)
+}
+
+// 加载新闻年份
+const loadNewsYears = async () => {
+  try {
+    const res = await newsApi.getList()
+    if (res.code === 200 && res.data) {
+      // 提取年份并去重排序
+      const years = [...new Set(res.data.map(news => {
+        if (news.publishDate) {
+          return new Date(news.publishDate).getFullYear()
+        }
+        return null
+      }).filter(year => year !== null))]
+      
+      // 降序排列（最新的年份在前）
+      newsYears.value = years.sort((a, b) => b - a)
+    }
+  } catch (error) {
+    console.error('加载新闻年份失败:', error)
+  }
+}
+
+// 加载成员角色
+const loadMemberRoles = async () => {
+  try {
+    const res = await membersApi.getRoles()
+    if (res.code === 200 && res.data) {
+      // 按排序顺序排列
+      memberRoles.value = res.data.sort((a, b) => a.sortOrder - b.sortOrder)
+    }
+  } catch (error) {
+    console.error('加载成员角色失败:', error)
+    // 使用默认角色
+    memberRoles.value = [
+      { id: 1, name: '指导教师', sortOrder: 1 },
+      { id: 2, name: '专任教师', sortOrder: 2 },
+      { id: 3, name: '研究生', sortOrder: 3 },
+      { id: 4, name: '校友', sortOrder: 4 }
+    ]
+  }
+}
+
+// 加载相册分类
+const loadGalleryCategories = async () => {
+  try {
+    const res = await galleryApi.getCategories()
+    if (res.code === 200 && res.data) {
+      // 按排序顺序排列
+      galleryCategories.value = res.data.sort((a, b) => a.sortOrder - b.sortOrder)
+    }
+  } catch (error) {
+    console.error('加载相册分类失败:', error)
+    galleryCategories.value = []
+  }
 }
 
 onMounted(() => {
@@ -86,6 +249,11 @@ onMounted(() => {
   } else if (path.includes('recruitment.html')) {
     currentPage.value = 'recruitment'
   }
+  
+  // 加载数据
+  loadNewsYears()
+  loadMemberRoles()
+  loadGalleryCategories()
 })
 </script>
 
@@ -95,31 +263,139 @@ onMounted(() => {
   box-shadow: var(--shadow-md);
 }
 
-/* Logo横幅 - 核心修改：添加水平居中样式 */
+/* Logo横幅 - 相对定位容器 */
 .logo-banner {
-  max-width: 1200px;
   background: white;
-  display: flex;
-  justify-content: center; /* 让内部图片水平居中 */
-  align-items: center;     /* 让内部图片垂直居中 */
   padding: 0;
-  /* 以下是新增的居中核心样式 */
-  margin: 0 auto;          /* 关键：让容器自身水平居中 */
-  width: 100%;             /* 让容器先占满父级宽度，再通过max-width限制最大宽度 */
+  position: relative;
 }
 
+.banner-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+/* 左侧容器 */
+.banner-left {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* 图片 */
 .logo-banner-image {
-  max-width: 100%;         /* 修改：图片宽度适配容器，避免超出1200px */
+  max-width: 100%;
   height: auto;
+  max-height: 200px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
 }
 
-/* 标题和导航区域 */
+/* 文字重叠在图片上方 - 绝对定位左侧 */
+.banner-title {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.site-title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.site-title-en {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.site-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.site-slogan {
+  font-size: 14px;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.site-slogan-en {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* 语言切换在图片右侧 */
+.banner-language {
+  display: flex;
+  flex-direction: row;
+  width: 120px;
+  align-self: stretch;
+}
+
+.language-btn {
+  flex: 1;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.language-btn:first-child {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.language-btn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.language-btn.active {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+/* 导航区域 */
 .header-content {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
   color: white;
-  padding: var(--spacing-md) 0;
+  padding: var(--spacing-sm) 0;
 }
 
 .header-container {
@@ -127,74 +403,36 @@ onMounted(() => {
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.language-switcher {
-  display: flex;
-  gap: 8px;
-}
-
-.language-btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.language-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.language-btn.active {
-  background: rgba(255, 255, 255, 0.4);
-  font-weight: 600;
-}
-
-.header-left {
-  flex: 1;
-}
-
-.site-title {
-  font-family: var(--font-serif);
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
-}
-
-.site-subtitle {
-  font-size: 14px;
-  opacity: 0.9;
-  font-weight: 300;
 }
 
 .nav {
   display: flex;
-  gap: 8px;
+  gap: 0;
   flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 
 .nav-item {
   color: white;
   text-decoration: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 17px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
   transition: all 0.3s ease;
   white-space: nowrap;
+  flex: 1;
+  text-align: center;
+  max-width: 150px;
+  position: relative;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  display: block;
 }
 
 .nav-item:hover,
@@ -203,19 +441,115 @@ onMounted(() => {
   backdrop-filter: blur(10px);
 }
 
+/* 下拉菜单基础样式 - 可复用 */
+.has-dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  z-index: 1000;
+  overflow: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: var(--primary-light);
+  color: white;
+}
+
+/* 下拉菜单动画 */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.3s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+}
+
 @media (max-width: 968px) {
-  .header-container {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    text-align: center;
+  .banner-title {
+    left: 10px;
+    padding: 15px;
+    max-width: 50%;
+  }
+
+  .banner-language {
+    right: 10px;
   }
 
   .site-title {
-    font-size: 28px;
+    font-size: 20px;
   }
 
-  .nav {
-    justify-content: center;
+  .site-subtitle {
+    font-size: 11px;
+  }
+
+  .nav-item {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .dropdown-menu {
+    min-width: 140px;
+  }
+  
+  .dropdown-item {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 640px) {
+  .banner-container {
+    flex-direction: column;
+  }
+
+  .banner-title {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    background: white;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .banner-language {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    margin-top: 10px;
   }
 }
 </style>

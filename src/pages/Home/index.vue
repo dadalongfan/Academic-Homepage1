@@ -1,7 +1,13 @@
 <template>
-  <div class="home-page" v-loading="loading">
+  <div class="home-page">
+    <!-- 翻译状态 -->
+    <div v-if="isTranslating" class="loading-container">
+      <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+      <p>{{ $t('common.loading') }}</p>
+    </div>
+
     <!-- 主容器：幻灯片 + 团队简介（左） + 个人简介（右） -->
-    <div class="home-hero">
+    <div v-else class="home-hero">
       <!-- 左侧列：幻灯片 + 团队简介 (70%) -->
       <div class="left-column">
         <!-- 图片幻灯片 -->
@@ -45,13 +51,13 @@
         <!-- 头像+职称信息区域 -->
         <div class="bio-header">
           <div class="bio-header-left">
-            <img :src="leaderInfo.avatarUrl || '/照片.png'" :alt="leaderInfo.name || '夏铭'" class="bio-header-photo" />
+            <img :src="displayLeaderInfo.avatarUrl || '/照片.png'" :alt="displayLeaderInfo.name || '夏铭'" class="bio-header-photo" />
           </div>
           <div class="bio-header-right">
             <h3 class="bio-header-name">{{ displayLeaderInfo.name || '夏铭' }}</h3>
             <p class="bio-header-title">{{ displayLeaderInfo.title || '副教授 · 硕士生导师' }}</p>
             <p class="bio-header-affiliation">{{ displayLeaderInfo.institution || '南京工业大学化工学院' }}</p>
-            <p class="bio-header-lab">{{ $t('材料化学工程国家重点实验室') }}</p>
+            <p class="bio-header-lab">{{ $t('材料化学工程全国重点实验室') }}</p>
           </div>
         </div>
 
@@ -65,11 +71,11 @@
         </template>
 
         <!-- 教育经历 -->
-        <template v-if="leaderEducation.length > 0">
+        <template v-if="educationList.length > 0">
           <h3 class="section-title">{{ $t('教育经历') }}</h3>
           <el-timeline class="timeline">
             <el-timeline-item
-              v-for="(edu, index) in leaderEducation"
+              v-for="(edu, index) in educationList"
               :key="index"
               :timestamp="`${edu.startDate ? edu.startDate : ''} - ${edu.endDate ? edu.endDate : $t('至今')}`"
               placement="top"
@@ -85,11 +91,11 @@
         </template>
 
         <!-- 工作经历 -->
-        <template v-if="leaderWorkExperience.length > 0">
+        <template v-if="workList.length > 0">
           <h3 class="section-title">{{ $t('工作经历') }}</h3>
           <el-timeline class="timeline">
             <el-timeline-item
-              v-for="(work, index) in leaderWorkExperience"
+              v-for="(work, index) in workList"
               :key="index"
               :timestamp="`${work.startDate ? work.startDate : ''} - ${work.endDate ? work.endDate : $t('至今')}`"
               placement="top"
@@ -111,46 +117,49 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import request from '/src/utils/api'
-import { translateHTML } from '/src/utils/i18n/translationService'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { Loading } from '@element-plus/icons-vue'
+import { slideshowApi, leaderApi } from '../../api'
+import { API_BASE_URL } from '../../config'
+import { useTranslation } from '../../utils/i18n/useTranslation'
 
-// i18n相关
-const { locale } = useI18n()
-const currentLocale = ref(locale.value)
-
-// 负责人原始信息（用于翻译）
-const leaderInfo = reactive({
-  id: null,
-  name: '',
-  title: '',
-  institution: '',
-  email: '',
-  phone: '',
-  introduction: '',
-  teamIntroduction: '',
-  avatarUrl: ''
+// 负责人信息翻译
+const {
+  originalData: originalLeaderInfo,
+  displayData: displayLeaderInfo,
+  updateOriginalData: updateLeaderInfo,
+  isTranslating: isTranslatingLeaderInfo
+} = useTranslation({}, {
+  textFields: ['name', 'title', 'institution'],
+  htmlFields: ['introduction', 'teamIntroduction']
 })
 
-// 用于显示的负责人信息（翻译后的）
-const displayLeaderInfo = reactive({
-  id: null,
-  name: '',
-  title: '',
-  institution: '',
-  email: '',
-  phone: '',
-  introduction: '',
-  teamIntroduction: '',
-  avatarUrl: ''
+// 教育经历翻译
+const {
+  originalData: originalEducation,
+  displayData: educationList,
+  updateOriginalData: updateEducation,
+  isTranslating: isTranslatingEducation
+} = useTranslation([], {
+  textFields: ['institution', 'degree', 'major', 'description']
 })
 
-// 负责人教育经历
-const leaderEducation = ref([])
+// 工作经历翻译
+const {
+  originalData: originalWork,
+  displayData: workList,
+  updateOriginalData: updateWork,
+  isTranslating: isTranslatingWork
+} = useTranslation([], {
+  textFields: ['company', 'position', 'description']
+})
 
-// 负责人工作经历
-const leaderWorkExperience = ref([])
+// 计算是否正在翻译
+const isTranslating = computed(() => 
+  isTranslatingLeaderInfo.value || 
+  isTranslatingEducation.value || 
+  isTranslatingWork.value
+)
 
 // 图片幻灯片
 const slides = ref([])
@@ -179,84 +188,19 @@ const resumeSlideshow = () => {
   }
 }
 
-// 翻译负责人信息
-const translateLeaderInfo = async () => {
-  console.log('=== translateLeaderInfo 调用 ===')
-  console.log('当前语言:', currentLocale.value)
-  console.log('原始数据:', {
-    name: leaderInfo.name,
-    title: leaderInfo.title,
-    institution: leaderInfo.institution,
-    introduction: leaderInfo.introduction?.substring(0, 100) + (leaderInfo.introduction?.length > 100 ? '...' : ''),
-    teamIntroduction: leaderInfo.teamIntroduction?.substring(0, 100) + (leaderInfo.teamIntroduction?.length > 100 ? '...' : '')
-  })
-  
-  // 如果是中文，直接使用原始数据
-  if (currentLocale.value === 'zh') {
-    console.log('当前是中文，直接使用原始数据')
-    Object.assign(displayLeaderInfo, leaderInfo)
-    console.log('displayLeaderInfo更新完成:', {
-      name: displayLeaderInfo.name,
-      title: displayLeaderInfo.title
-    })
-    console.log('=== translateLeaderInfo 结束 ===')
-    return
-  }
-
-  console.log('开始英文翻译')
-  // 英文翻译
-  displayLeaderInfo.id = leaderInfo.id
-  displayLeaderInfo.avatarUrl = leaderInfo.avatarUrl
-  displayLeaderInfo.email = leaderInfo.email
-  displayLeaderInfo.phone = leaderInfo.phone
-  
-  // 翻译文本字段
-  console.log('翻译name字段:', leaderInfo.name || '')
-  displayLeaderInfo.name = await translateHTML(leaderInfo.name || '', 'zh', 'en')
-  console.log('name翻译结果:', displayLeaderInfo.name)
-  
-  console.log('翻译title字段:', leaderInfo.title || '')
-  displayLeaderInfo.title = await translateHTML(leaderInfo.title || '', 'zh', 'en')
-  console.log('title翻译结果:', displayLeaderInfo.title)
-  
-  console.log('翻译institution字段:', leaderInfo.institution || '')
-  displayLeaderInfo.institution = await translateHTML(leaderInfo.institution || '', 'zh', 'en')
-  console.log('institution翻译结果:', displayLeaderInfo.institution)
-  
-  console.log('翻译introduction字段:', leaderInfo.introduction?.substring(0, 50) + (leaderInfo.introduction?.length > 50 ? '...' : ''))
-  displayLeaderInfo.introduction = await translateHTML(leaderInfo.introduction || '', 'zh', 'en')
-  console.log('introduction翻译结果:', displayLeaderInfo.introduction?.substring(0, 50) + (displayLeaderInfo.introduction?.length > 50 ? '...' : ''))
-  
-  console.log('翻译teamIntroduction字段:', leaderInfo.teamIntroduction?.substring(0, 50) + (leaderInfo.teamIntroduction?.length > 50 ? '...' : ''))
-  displayLeaderInfo.teamIntroduction = await translateHTML(leaderInfo.teamIntroduction || '', 'zh', 'en')
-  console.log('teamIntroduction翻译结果:', displayLeaderInfo.teamIntroduction?.substring(0, 50) + (displayLeaderInfo.teamIntroduction?.length > 50 ? '...' : ''))
-  
-  console.log('翻译完成，displayLeaderInfo:', {
-    name: displayLeaderInfo.name,
-    title: displayLeaderInfo.title,
-    hasIntroduction: !!displayLeaderInfo.introduction,
-    hasTeamIntroduction: !!displayLeaderInfo.teamIntroduction
-  })
-  console.log('=== translateLeaderInfo 结束 ===')
-}
-
 // 获取幻灯片数据
 const fetchSlideshows = async () => {
   try {
     loading.value = true
-    console.log('=== 获取幻灯片数据 ===')
-    const res = await request.get('/slideshow/list')
+    const res = await slideshowApi.getList()
     const data = res.data || []
-    console.log('幻灯片数据:', data)
     // 将相对路径转换为完整URL
     slides.value = data.map(item => {
       if (item.imageUrl && !item.imageUrl.startsWith('http://') && !item.imageUrl.startsWith('https://')) {
-        return `${request.defaults.baseURL}${item.imageUrl}`
+        return `${API_BASE_URL}${item.imageUrl}`
       }
       return item.imageUrl
     })
-    console.log('幻灯片URL处理完成:', slides.value)
-    console.log('=== 获取幻灯片数据结束 ===')
   } catch (error) {
     console.error('获取幻灯片失败:', error)
   } finally {
@@ -267,95 +211,26 @@ const fetchSlideshows = async () => {
 // 获取负责人基本信息
 const fetchLeaderInfo = async () => {
   try {
-    console.log('=== 获取负责人基本信息 ===')
-    const res = await request.get('/leader/info')
+    const res = await leaderApi.getInfo()
     const data = res.data || {}
-    console.log('负责人原始数据:', data)
     
-    // 将数据赋值给leaderInfo
-    Object.keys(leaderInfo).forEach(key => {
-      if (data[key] !== undefined) {
-        leaderInfo[key] = data[key]
-      }
-    })
+    // 处理头像URL，转换为完整URL
+    if (data.avatarUrl && !data.avatarUrl.startsWith('http://') && !data.avatarUrl.startsWith('https://')) {
+      data.avatarUrl = `${API_BASE_URL}${data.avatarUrl}`
+    }
     
-    console.log('leaderInfo更新完成:', {
-      name: leaderInfo.name,
-      title: leaderInfo.title,
-      hasIntroduction: !!leaderInfo.introduction,
-      hasTeamIntroduction: !!leaderInfo.teamIntroduction
-    })
-    
-    // 翻译负责人信息
-    console.log('开始翻译负责人信息')
-    await translateLeaderInfo()
-    console.log('=== 获取负责人基本信息结束 ===')
+    updateLeaderInfo(data)
   } catch (error) {
     console.error('获取负责人信息失败:', error)
   }
 }
 
-// 翻译教育经历
-const translateEducation = async (educationList) => {
-  console.log('=== 翻译教育经历 ===')
-  console.log('当前语言:', currentLocale.value)
-  
-  if (currentLocale.value === 'zh') {
-    console.log('中文语言，直接返回原始数据')
-    return educationList
-  }
-  
-  // 英文翻译
-  const translatedEducation = await Promise.all(educationList.map(async (edu) => {
-    const translatedEdu = { ...edu }
-    translatedEdu.institution = await translateHTML(edu.institution || '', 'zh', 'en')
-    translatedEdu.degree = await translateHTML(edu.degree || '', 'zh', 'en')
-    translatedEdu.major = await translateHTML(edu.major || '', 'zh', 'en')
-    translatedEdu.description = await translateHTML(edu.description || '', 'zh', 'en')
-    return translatedEdu
-  }))
-  
-  console.log('教育经历翻译完成')
-  return translatedEducation
-}
-
-// 翻译工作经历
-const translateWorkExperience = async (workList) => {
-  console.log('=== 翻译工作经历 ===')
-  console.log('当前语言:', currentLocale.value)
-  
-  if (currentLocale.value === 'zh') {
-    console.log('中文语言，直接返回原始数据')
-    return workList
-  }
-  
-  // 英文翻译
-  const translatedWork = await Promise.all(workList.map(async (work) => {
-    const translatedWorkItem = { ...work }
-    translatedWorkItem.company = await translateHTML(work.company || '', 'zh', 'en')
-    translatedWorkItem.position = await translateHTML(work.position || '', 'zh', 'en')
-    translatedWorkItem.description = await translateHTML(work.description || '', 'zh', 'en')
-    return translatedWorkItem
-  }))
-  
-  console.log('工作经历翻译完成')
-  return translatedWork
-}
-
 // 获取负责人教育经历
 const fetchLeaderEducation = async () => {
   try {
-    console.log('=== 获取负责人教育经历 ===')
-    const res = await request.get('/leader/education')
-    const originalEducation = res.data || []
-    console.log('教育经历原始数据:', originalEducation)
-    
-    // 翻译教育经历
-    const translatedEducation = await translateEducation(originalEducation)
-    leaderEducation.value = translatedEducation
-    
-    console.log('教育经历翻译后数据:', leaderEducation.value)
-    console.log('=== 获取负责人教育经历结束 ===')
+    const res = await leaderApi.getEducation()
+    const data = res.data || []
+    updateEducation(data)
   } catch (error) {
     console.error('获取负责人教育经历失败:', error)
   }
@@ -364,44 +239,13 @@ const fetchLeaderEducation = async () => {
 // 获取负责人工作经历
 const fetchLeaderWorkExperience = async () => {
   try {
-    console.log('=== 获取负责人工作经历 ===')
-    const res = await request.get('/leader/work-experience')
-    const originalWork = res.data || []
-    console.log('工作经历原始数据:', originalWork)
-    
-    // 翻译工作经历
-    const translatedWork = await translateWorkExperience(originalWork)
-    leaderWorkExperience.value = translatedWork
-    
-    console.log('工作经历翻译后数据:', leaderWorkExperience.value)
-    console.log('=== 获取负责人工作经历结束 ===')
+    const res = await leaderApi.getWorkExperience()
+    const data = res.data || []
+    updateWork(data)
   } catch (error) {
     console.error('获取负责人工作经历失败:', error)
   }
 }
-
-// 监听语言变化
-watch(() => locale.value, async (newLocale) => {
-  console.log('=== 语言切换监听 ===')
-  console.log('语言从', currentLocale.value, '变为', newLocale)
-  currentLocale.value = newLocale
-  
-  // 重新翻译所有动态数据
-  console.log('开始重新翻译负责人基本信息')
-  await translateLeaderInfo()
-  
-  console.log('开始重新翻译负责人教育经历')
-  const originalEducation = [...leaderEducation.value]
-  const translatedEducation = await translateEducation(originalEducation)
-  leaderEducation.value = translatedEducation
-  
-  console.log('开始重新翻译负责人工作经历')
-  const originalWork = [...leaderWorkExperience.value]
-  const translatedWork = await translateWorkExperience(originalWork)
-  leaderWorkExperience.value = translatedWork
-  
-  console.log('=== 语言切换处理完成 ===')
-})
 
 onMounted(() => {
   fetchSlideshows()
@@ -417,8 +261,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import '/src/assets/styles/variables.css';
-@import '/src/assets/styles/common.css';
+@import '../../assets/styles/variables.css';
+@import '../../assets/styles/common.css';
 
 .home-page {
   animation: fadeIn 0.5s ease-in;

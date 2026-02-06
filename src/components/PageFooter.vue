@@ -5,11 +5,11 @@
         <div class="footer-section">
           <h3>{{ $t('联系方式') }}</h3>
           <div class="contact-info">
-            <p><i class="icon">📧</i> {{ $t('邮箱') }}：{{ leaderInfo.email || $t('暂未设置') }}</p>
-            <p><i class="icon">📱</i> {{ $t('电话') }}：{{ leaderInfo.phone || $t('暂未设置') }}</p>
-            <p><i class="icon">📍</i> {{ $t('地址') }}：{{ leaderInfo.address || $t('暂未设置') }}</p>
-            <p><i class="icon">📮</i> {{ $t('邮编') }}：{{ leaderInfo.postcode || $t('暂未设置') }}</p>
-          </div>
+          <p><i class="icon">📧</i> {{ $t('邮箱') }}：{{ displayLeaderInfo.email || $t('暂未设置') }}</p>
+          <p><i class="icon">📱</i> {{ $t('电话') }}：{{ displayLeaderInfo.phone || $t('暂未设置') }}</p>
+          <p><i class="icon">📍</i> {{ $t('地址') }}：{{ displayLeaderInfo.address || $t('暂未设置') }}</p>
+          <p><i class="icon">📮</i> {{ $t('邮编') }}：{{ displayLeaderInfo.postcode || $t('暂未设置') }}</p>
+        </div>
         </div>
       </div>
       <div class="footer-bottom">
@@ -21,16 +21,24 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import request from '../utils/api'
+import { leaderApi } from '../api'
+import { useTranslation } from '../utils/i18n/useTranslation'
 
-const leaderInfo = ref({})
+// 使用通用翻译逻辑处理负责人信息
+const {
+  originalData: originalLeaderInfo,
+  displayData: displayLeaderInfo,
+  updateOriginalData: updateLeaderInfo
+} = useTranslation({}, {
+  textFields: ['email', 'phone', 'address', 'postcode']
+})
 
 // 加载负责人信息
 const loadLeaderInfo = async () => {
   try {
-    const res = await request.get('/leader/info')
+    const res = await leaderApi.getInfo()
     if (res.data) {
-      leaderInfo.value = res.data
+      updateLeaderInfo(res.data)
     }
   } catch (error) {
     console.error('加载负责人信息失败:', error)

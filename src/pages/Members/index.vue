@@ -1,6 +1,6 @@
 <template>
   <div class="members-page">
-    <h2 class="section-title">{{ $t('members.title') }}</h2>
+    <h2 class="section-title">{{ $t('members') }}</h2>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
@@ -17,93 +17,107 @@
       class="error-alert"
     />
 
+    <!-- 翻译状态 -->
+    <div v-else-if="isTranslating" class="loading-container">
+      <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+      <p>{{ $t('common.loading') }}</p>
+    </div>
+
     <template v-else>
-      <!-- 指导教师 -->
-      <div v-if="supervisors.length > 0" class="section-card">
-        <h3 class="subsection-title">{{ $t('members.supervisors') }}</h3>
-        <div v-for="member in supervisors" :key="member.id" class="teacher-card">
-          <div class="teacher-photo">
-            <img v-if="member.avatarUrl" :src="member.avatarUrl" :alt="member.name" />
-            <div v-else class="avatar-placeholder">{{ member.name?.charAt(0) || '导' }}</div>
-          </div>
-          <div class="teacher-info">
-            <h4>{{ member.name }}</h4>
-            <p class="teacher-title">{{ member.role }}</p>
-            <p v-if="member.bio" class="teacher-desc">{{ member.bio }}</p>
-            <p v-if="member.researchDirection" class="teacher-desc">{{ $t('members.researchDirection') }}：{{ member.researchDirection }}</p>
-            <p v-if="member.email" class="teacher-desc">
-              <el-icon><Message /></el-icon>
-              {{ member.email }}
-            </p>
-          </div>
-        </div>
-      </div>
+      <!-- 按角色分组展示 -->
+      <template v-for="group in membersByRole" :key="group.roleId">
+      <div
+        v-if="group && group.members && group.members.length > 0"
+        class="section-card"
+      >
+        <h3 class="subsection-title">{{ group.roleName }}</h3>
 
-      <!-- 专任教师 -->
-      <div v-if="fullTimeTeachers.length > 0" class="section-card">
-        <h3 class="subsection-title">{{ $t('members.fullTimeTeachers') }}</h3>
-        <div class="teachers-grid">
-          <div v-for="member in fullTimeTeachers" :key="member.id" class="teacher-card-compact">
-            <div class="teacher-avatar-small">
-              <img v-if="member.avatarUrl" :src="member.avatarUrl" :alt="member.name" />
-              <div v-else>{{ member.name?.charAt(0) || '教' }}</div>
-            </div>
-            <div class="teacher-info-compact">
-              <h5>{{ member.name }}</h5>
-              <p class="teacher-role">{{ member.role }}</p>
-              <p v-if="member.researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ member.researchDirection }}</p>
-              <p v-if="member.email" class="teacher-email">
-                <el-icon><Message /></el-icon>
-                {{ member.email }}
-              </p>
-            </div>
+        <!-- 指导教师样式 -->
+        <div v-if="group.roleName === '指导教师'" class="teacher-card">
+          <div v-for="member in group.members" :key="member.id">
+            <template v-if="displayMemberById(member.id)">
+              <div class="teacher-photo">
+                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                <div v-else class="avatar-placeholder">{{ displayMemberById(member.id).name?.charAt(0) || '导' }}</div>
+              </div>
+              <div class="teacher-info">
+                <h4>{{ displayMemberById(member.id).name }}</h4>
+                <p class="teacher-title">{{ displayMemberById(member.id).roleName }}</p>
+                <p v-if="displayMemberById(member.id).bio" class="teacher-desc">{{ displayMemberById(member.id).bio }}</p>
+                <p v-if="displayMemberById(member.id).researchDirection" class="teacher-desc">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
+                <p v-if="displayMemberById(member.id).email" class="teacher-desc">
+                  <el-icon><Message /></el-icon>
+                  {{ displayMemberById(member.id).email }}
+                </p>
+              </div>
+            </template>
           </div>
         </div>
-      </div>
 
-      <!-- 研究生 -->
-      <div v-if="currentGraduates.length > 0" class="section-card">
-        <h3 class="subsection-title">{{ $t('members.graduates') }}</h3>
-        <div class="members-grid">
-          <div v-for="member in currentGraduates" :key="member.id" class="member-card">
-            <div class="member-avatar">
-              <img v-if="member.avatarUrl" :src="member.avatarUrl" :alt="member.name" />
-              <div v-else>{{ member.name?.charAt(0) || '研' }}</div>
-            </div>
-            <div class="member-info">
-              <h5>{{ member.name }}</h5>
-              <p v-if="member.researchDirection" class="member-research">{{ member.researchDirection }}</p>
-              <el-tag v-if="member.honors" size="small" type="success">{{ member.honors }}</el-tag>
-            </div>
+        <!-- 专任教师样式 -->
+        <div v-else-if="group.roleName === '专任教师'" class="teachers-grid">
+          <div v-for="member in group.members" :key="member.id" class="teacher-card-compact">
+            <template v-if="displayMemberById(member.id)">
+              <div class="teacher-avatar-small">
+                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '教' }}</div>
+              </div>
+              <div class="teacher-info-compact">
+                <h5>{{ displayMemberById(member.id).name }}</h5>
+                <p class="teacher-role">{{ displayMemberById(member.id).roleName }}</p>
+                <p v-if="displayMemberById(member.id).researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
+                <p v-if="displayMemberById(member.id).email" class="teacher-email">
+                  <el-icon><Message /></el-icon>
+                  {{ displayMemberById(member.id).email }}
+                </p>
+              </div>
+            </template>
           </div>
         </div>
-      </div>
 
-      <!-- 校友 -->
-      <div v-if="alumni.length > 0" class="section-card">
-        <h3 class="subsection-title">{{ $t('members.alumni') }}</h3>
-        <div class="teachers-grid">
-          <div v-for="member in alumni" :key="member.id" class="teacher-card-compact">
-            <div class="teacher-avatar-small">
-              <img v-if="member.avatarUrl" :src="member.avatarUrl" :alt="member.name" />
-              <div v-else>{{ member.name?.charAt(0) || '校' }}</div>
-            </div>
-            <div class="teacher-info-compact">
-              <h5>{{ member.name }}</h5>
-              <p class="teacher-role">{{ member.role }}</p>
-              <p v-if="member.researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ member.researchDirection }}</p>
-              <p v-if="member.email" class="teacher-email">
-                <el-icon><Message /></el-icon>
-                {{ member.email }}
-              </p>
-            </div>
+        <!-- 研究生样式 -->
+        <div v-else-if="group.roleName === '研究生'" class="members-grid">
+          <div v-for="member in group.members" :key="member.id" class="member-card">
+            <template v-if="displayMemberById(member.id)">
+              <div class="member-avatar">
+                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '研' }}</div>
+              </div>
+              <div class="member-info">
+                <h5>{{ displayMemberById(member.id).name }}</h5>
+                <p v-if="displayMemberById(member.id).researchDirection" class="member-research">{{ displayMemberById(member.id).researchDirection }}</p>
+                <el-tag v-if="displayMemberById(member.id).honors" size="small" type="success">{{ displayMemberById(member.id).honors }}</el-tag>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 其他角色默认样式 -->
+        <div v-else class="teachers-grid">
+          <div v-for="member in group.members" :key="member.id" class="teacher-card-compact">
+            <template v-if="displayMemberById(member.id)">
+              <div class="teacher-avatar-small">
+                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '成' }}</div>
+              </div>
+              <div class="teacher-info-compact">
+                <h5>{{ displayMemberById(member.id).name }}</h5>
+                <p class="teacher-role">{{ displayMemberById(member.id).roleName }}</p>
+                <p v-if="displayMemberById(member.id).researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
+                <p v-if="displayMemberById(member.id).email" class="teacher-email">
+                  <el-icon><Message /></el-icon>
+                  {{ displayMemberById(member.id).email }}
+                </p>
+              </div>
+            </template>
           </div>
         </div>
       </div>
+      </template>
 
       <!-- 空状态 -->
       <el-empty
-        v-if="supervisors.length === 0 && fullTimeTeachers.length === 0 && currentGraduates.length === 0 && alumni.length === 0"
+        v-if="membersByRole.length === 0 || membersByRole.every(g => g.members.length === 0)"
         :description="$t('members.noData')"
         :image-size="200"
       />
@@ -114,31 +128,79 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Loading, Message } from '@element-plus/icons-vue'
-import request from '@/utils/api'
+import { membersApi } from '@/api'
+import { API_BASE_URL } from '@/config'
 import { useTranslation } from '@/utils/i18n/useTranslation'
 
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
+const rolesList = ref([])
 
 // 使用通用翻译逻辑
 const {
   originalData: originalMembers,
   displayData: allMembers,
-  updateOriginalData
+  updateOriginalData,
+  isTranslating
 } = useTranslation([], {
-  textFields: ['name', 'role', 'bio', 'researchDirection', 'honors']
+  textFields: ['name', 'bio', 'researchDirection', 'honors', 'roleName']
 })
 
-// 分类数据
-const supervisors = computed(() => allMembers.value.filter(m => m.role === '指导教师'))
-const fullTimeTeachers = computed(() => allMembers.value.filter(m => m.role === '专任教师'))
-const currentGraduates = computed(() =>
-  allMembers.value.filter(m => m.role === '研究生')
-)
-const alumni = computed(() =>
-  allMembers.value.filter(m => m.role === '校友')
-)
+// 根据ID查找翻译后的成员信息
+const displayMemberById = (id) => {
+  return allMembers.value.find(m => m.id === id)
+}
+
+// 按角色分组的成员
+const membersByRole = computed(() => {
+  const groups = []
+
+  // 按角色排序顺序遍历
+  for (const role of rolesList.value) {
+    if (!role) continue
+    const roleMembers = originalMembers.value.filter(m => m && m.roleId === role.id)
+    if (roleMembers.length > 0) {
+      groups.push({
+        roleId: role.id,
+        roleName: role.name,
+        members: roleMembers
+      })
+    }
+  }
+
+  // 添加未分配角色的成员
+  const unassignedMembers = originalMembers.value.filter(m => m && !m.roleId)
+  if (unassignedMembers.length > 0) {
+    groups.push({
+      roleId: null,
+      roleName: '其他成员',
+      members: unassignedMembers
+    })
+  }
+
+  return groups
+})
+
+// 加载角色列表
+const loadRoles = async () => {
+  try {
+    const res = await membersApi.getRoles()
+    if (res.code === 200) {
+      // 只显示可见的角色
+      rolesList.value = (res.data || []).filter(role => role.isVisible !== false)
+    }
+  } catch (err) {
+    console.error('加载角色列表失败:', err)
+    // 使用默认角色
+    rolesList.value = [
+      { id: 1, name: '指导教师' },
+      { id: 2, name: '专任教师' },
+      { id: 3, name: '研究生' },
+      { id: 4, name: '校友' }
+    ]
+  }
+}
 
 // 加载成员数据
 const loadMembers = async () => {
@@ -146,12 +208,25 @@ const loadMembers = async () => {
     loading.value = true
     error.value = ''
 
-    const res = await request.get('/members/list')
+    // 先加载角色
+    await loadRoles()
+
+    // 再加载成员
+    const res = await membersApi.getListByRole()
 
     if (res.code === 200) {
       const members = res.data || []
-      updateOriginalData(members)
-      console.log('成员数据加载成功:', members.length, '条')
+
+      // 处理成员头像URL，转换为完整URL
+      const processedMembers = members.map(member => {
+        if (member.avatarUrl && !member.avatarUrl.startsWith('http://') && !member.avatarUrl.startsWith('https://')) {
+          member.avatarUrl = `${API_BASE_URL}${member.avatarUrl}`
+        }
+        return member
+      })
+
+      updateOriginalData(processedMembers)
+      console.log('成员数据加载成功:', processedMembers.length, '条')
     } else {
       error.value = res.message || '加载成员失败'
     }
@@ -164,7 +239,8 @@ const loadMembers = async () => {
       {
         id: 1,
         name: '夏铭',
-        role: '指导教师',
+        roleId: 1,
+        roleName: '指导教师',
         avatarUrl: '/照片.png',
         bio: '南京工业大学化工学院',
         researchDirection: '催化反应工程'

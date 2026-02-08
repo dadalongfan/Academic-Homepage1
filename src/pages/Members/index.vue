@@ -1,5 +1,5 @@
 <template>
-  <div class="members-page">
+  <div class="members-page" :class="{ 'page-loading': loading || isTranslating }">
     <h2 class="section-title">{{ $t('members') }}</h2>
 
     <!-- 加载状态 -->
@@ -24,109 +24,134 @@
     </div>
 
     <template v-else>
-      <!-- 按角色分组展示 -->
-      <template v-for="group in membersByRole" :key="group.roleId">
-      <div
-        v-if="group && group.members && group.members.length > 0"
-        class="section-card"
-      >
-        <h3 class="subsection-title">{{ group.roleName }}</h3>
-
-        <!-- 指导教师样式 -->
-        <div v-if="group.roleName === '指导教师'" class="teacher-card">
-          <div v-for="member in group.members" :key="member.id">
-            <template v-if="displayMemberById(member.id)">
-              <div class="teacher-photo">
-                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
-                <div v-else class="avatar-placeholder">{{ displayMemberById(member.id).name?.charAt(0) || '导' }}</div>
-              </div>
-              <div class="teacher-info">
-                <h4>{{ displayMemberById(member.id).name }}</h4>
-                <p class="teacher-title">{{ displayMemberById(member.id).roleName }}</p>
-                <p v-if="displayMemberById(member.id).bio" class="teacher-desc">{{ displayMemberById(member.id).bio }}</p>
-                <p v-if="displayMemberById(member.id).researchDirection" class="teacher-desc">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
-                <p v-if="displayMemberById(member.id).email" class="teacher-desc">
-                  <el-icon><Message /></el-icon>
-                  {{ displayMemberById(member.id).email }}
-                </p>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <!-- 专任教师样式 -->
-        <div v-else-if="group.roleName === '专任教师'" class="teachers-grid">
-          <div v-for="member in group.members" :key="member.id" class="teacher-card-compact">
-            <template v-if="displayMemberById(member.id)">
-              <div class="teacher-avatar-small">
-                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
-                <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '教' }}</div>
-              </div>
-              <div class="teacher-info-compact">
-                <h5>{{ displayMemberById(member.id).name }}</h5>
-                <p class="teacher-role">{{ displayMemberById(member.id).roleName }}</p>
-                <p v-if="displayMemberById(member.id).researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
-                <p v-if="displayMemberById(member.id).email" class="teacher-email">
-                  <el-icon><Message /></el-icon>
-                  {{ displayMemberById(member.id).email }}
-                </p>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <!-- 研究生样式 -->
-        <div v-else-if="group.roleName === '研究生'" class="members-grid">
-          <div v-for="member in group.members" :key="member.id" class="member-card">
-            <template v-if="displayMemberById(member.id)">
-              <div class="member-avatar">
-                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
-                <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '研' }}</div>
-              </div>
-              <div class="member-info">
-                <h5>{{ displayMemberById(member.id).name }}</h5>
-                <p v-if="displayMemberById(member.id).researchDirection" class="member-research">{{ displayMemberById(member.id).researchDirection }}</p>
-                <el-tag v-if="displayMemberById(member.id).honors" size="small" type="success">{{ displayMemberById(member.id).honors }}</el-tag>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <!-- 其他角色默认样式 -->
-        <div v-else class="teachers-grid">
-          <div v-for="member in group.members" :key="member.id" class="teacher-card-compact">
-            <template v-if="displayMemberById(member.id)">
-              <div class="teacher-avatar-small">
-                <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
-                <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '成' }}</div>
-              </div>
-              <div class="teacher-info-compact">
-                <h5>{{ displayMemberById(member.id).name }}</h5>
-                <p class="teacher-role">{{ displayMemberById(member.id).roleName }}</p>
-                <p v-if="displayMemberById(member.id).researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
-                <p v-if="displayMemberById(member.id).email" class="teacher-email">
-                  <el-icon><Message /></el-icon>
-                  {{ displayMemberById(member.id).email }}
-                </p>
-              </div>
-            </template>
-          </div>
-        </div>
+      <!-- 左侧固定导航菜单 -->
+      <div v-if="membersByRole.length > 0" class="side-nav">
+        <div class="side-nav-title">角色分类</div>
+        <ul class="side-nav-list">
+          <li
+            v-for="group in membersByRole"
+            :key="group.roleId"
+            class="side-nav-item"
+            :class="{ active: activeRole === group.roleId }"
+          >
+            <a
+              :href="group.roleId ? `#role-${group.roleId}` : '#role-unassigned'"
+              @click.prevent="scrollToRole(group.roleId)"
+              class="side-nav-link"
+            >
+              {{ group.roleName }}
+            </a>
+          </li>
+        </ul>
       </div>
-      </template>
 
-      <!-- 空状态 -->
-      <el-empty
-        v-if="membersByRole.length === 0 || membersByRole.every(g => g.members.length === 0)"
-        :description="$t('members.noData')"
-        :image-size="200"
-      />
+      <!-- 右侧内容区域 -->
+      <div class="members-content">
+        <!-- 按角色分组展示 -->
+        <template v-for="group in membersByRole" :key="group.roleId">
+        <div
+          v-if="group && group.members && group.members.length > 0"
+          class="section-card"
+          :id="group.roleId ? `role-${group.roleId}` : 'role-unassigned'"
+        >
+          <h3 class="subsection-title">{{ group.roleName }}</h3>
+
+          <!-- 指导教师样式 -->
+          <div v-if="group.roleName === '指导教师'" class="teacher-card">
+            <div v-for="member in group.members" :key="member.id">
+              <template v-if="displayMemberById(member.id)">
+                <div class="teacher-photo">
+                  <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                  <div v-else class="avatar-placeholder">{{ displayMemberById(member.id).name?.charAt(0) || '导' }}</div>
+                </div>
+                <div class="teacher-info">
+                  <h4>{{ displayMemberById(member.id).name }}</h4>
+                  <p class="teacher-title">{{ displayMemberById(member.id).roleName }}</p>
+                  <p v-if="displayMemberById(member.id).bio" class="teacher-desc">{{ displayMemberById(member.id).bio }}</p>
+                  <p v-if="displayMemberById(member.id).researchDirection" class="teacher-desc">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
+                  <p v-if="displayMemberById(member.id).email" class="teacher-desc">
+                    <el-icon><Message /></el-icon>
+                    {{ displayMemberById(member.id).email }}
+                  </p>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 专任教师样式 -->
+          <div v-else-if="group.roleName === '专任教师'" class="teachers-grid">
+            <div v-for="member in group.members" :key="member.id" class="teacher-card-compact">
+              <template v-if="displayMemberById(member.id)">
+                <div class="teacher-avatar-small">
+                  <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                  <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '教' }}</div>
+                </div>
+                <div class="teacher-info-compact">
+                  <h5>{{ displayMemberById(member.id).name }}</h5>
+                  <p class="teacher-role">{{ displayMemberById(member.id).roleName }}</p>
+                  <p v-if="displayMemberById(member.id).researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
+                  <p v-if="displayMemberById(member.id).email" class="teacher-email">
+                    <el-icon><Message /></el-icon>
+                    {{ displayMemberById(member.id).email }}
+                  </p>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 研究生样式 -->
+          <div v-else-if="group.roleName === '研究生'" class="members-grid">
+            <div v-for="member in group.members" :key="member.id" class="member-card">
+              <template v-if="displayMemberById(member.id)">
+                <div class="member-avatar">
+                  <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                  <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '研' }}</div>
+                </div>
+                <div class="member-info">
+                  <h5>{{ displayMemberById(member.id).name }}</h5>
+                  <p v-if="displayMemberById(member.id).researchDirection" class="member-research">{{ displayMemberById(member.id).researchDirection }}</p>
+                  <el-tag v-if="displayMemberById(member.id).honors" size="small" type="success">{{ displayMemberById(member.id).honors }}</el-tag>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 其他角色默认样式 -->
+          <div v-else class="teachers-grid">
+            <div v-for="member in group.members" :key="member.id" class="teacher-card-compact">
+              <template v-if="displayMemberById(member.id)">
+                <div class="teacher-avatar-small">
+                  <img v-if="displayMemberById(member.id).avatarUrl" :src="displayMemberById(member.id).avatarUrl" :alt="displayMemberById(member.id).name" />
+                  <div v-else>{{ displayMemberById(member.id).name?.charAt(0) || '成' }}</div>
+                </div>
+                <div class="teacher-info-compact">
+                  <h5>{{ displayMemberById(member.id).name }}</h5>
+                  <p class="teacher-role">{{ displayMemberById(member.id).roleName }}</p>
+                  <p v-if="displayMemberById(member.id).researchDirection" class="teacher-research">{{ $t('members.researchDirection') }}：{{ displayMemberById(member.id).researchDirection }}</p>
+                  <p v-if="displayMemberById(member.id).email" class="teacher-email">
+                    <el-icon><Message /></el-icon>
+                    {{ displayMemberById(member.id).email }}
+                  </p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        </template>
+
+        <!-- 空状态 -->
+        <el-empty
+          v-if="membersByRole.length === 0 || membersByRole.every(g => g.members.length === 0)"
+          :description="$t('members.noData')"
+          :image-size="200"
+        />
+      </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Loading, Message } from '@element-plus/icons-vue'
 import { membersApi } from '@/api'
 import { API_BASE_URL } from '@/config'
@@ -136,6 +161,7 @@ import { useTranslation } from '@/utils/i18n/useTranslation'
 const loading = ref(true)
 const error = ref('')
 const rolesList = ref([])
+const activeRole = ref(null) // 当前激活的角色
 
 // 使用通用翻译逻辑
 const {
@@ -252,13 +278,173 @@ const loadMembers = async () => {
   }
 }
 
+// 解析URL参数并跳转到指定角色
+const scrollToRoleSection = () => {
+  setTimeout(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const roleId = urlParams.get('role')
+    if (roleId) {
+      const targetElement = document.getElementById(`role-${roleId}`)
+      if (targetElement) {
+        targetElement.scrollIntoView({
+          behavior: 'auto',
+          block: 'start'
+        })
+        activeRole.value = parseInt(roleId)
+        console.log(`跳转到角色: ${roleId}`)
+      } else {
+        console.warn(`未找到角色卡片: role-${roleId}`)
+      }
+    }
+  }, 300)
+}
+
+// 点击侧边栏导航跳转到指定角色
+const scrollToRole = (roleId) => {
+  const targetId = roleId ? `role-${roleId}` : 'role-unassigned'
+  const targetElement = document.getElementById(targetId)
+  if (targetElement) {
+    targetElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+    activeRole.value = roleId
+  }
+}
+
+// 监听页面滚动,高亮当前可见的角色卡片
+let scrollTimer = null
+const handleScroll = () => {
+  if (scrollTimer) return
+
+  scrollTimer = setTimeout(() => {
+    const sectionCards = document.querySelectorAll('.section-card')
+    let currentRoleId = null
+
+    sectionCards.forEach(card => {
+      const rect = card.getBoundingClientRect()
+      const cardTop = rect.top
+      const cardBottom = rect.bottom
+
+      // 如果卡片在视口中间位置,认为是当前激活的
+      if (cardTop <= window.innerHeight / 2 && cardBottom >= window.innerHeight / 2) {
+        const id = card.id
+        if (id.startsWith('role-')) {
+          const roleId = id.replace('role-', '')
+          currentRoleId = roleId === 'unassigned' ? null : parseInt(roleId)
+        }
+      }
+    })
+
+    if (currentRoleId !== null || currentRoleId === activeRole.value) {
+      activeRole.value = currentRoleId
+    }
+
+    scrollTimer = null
+  }, 100)
+}
+
 // 组件挂载时加载数据
 onMounted(() => {
-  loadMembers()
+  loadMembers().then(() => {
+    nextTick(() => {
+      scrollToRoleSection()
+    })
+  })
+
+  // 添加滚动监听
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+// 组件卸载时移除滚动监听
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
 <style scoped>
+/* 页面加载状态隐藏内容 */
+.page-loading {
+  visibility: hidden;
+}
+
+/* 左侧固定导航菜单 */
+.side-nav {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 140px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 16px 0;
+  z-index: 100;
+}
+
+.side-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.side-nav::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 2px;
+}
+
+.side-nav::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+.side-nav-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+  padding: 0 16px 12px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 8px;
+}
+
+.side-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.side-nav-item {
+  padding: 0 8px;
+  margin: 4px 0;
+}
+
+.side-nav-link {
+  display: block;
+  padding: 10px 12px;
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.side-nav-link:hover {
+  background: #f0f0f0;
+  color: var(--primary-color, #10b981);
+}
+
+.side-nav-item.active .side-nav-link {
+  background: linear-gradient(135deg, var(--primary-color, #10b981) 0%, var(--primary-light, #34d399) 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* 右侧内容区域 */
+.members-content {
+  margin-left: 160px;
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -476,5 +662,15 @@ onMounted(() => {
   line-height: 1.4;
 }
 
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .side-nav {
+    display: none;
+  }
+
+  .members-content {
+    margin-left: 0;
+  }
+}
 
 </style>

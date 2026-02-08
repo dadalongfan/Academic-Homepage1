@@ -42,7 +42,13 @@ export default defineConfig(({ mode }) => {
           publications: resolve(__dirname, 'publications.html'),
           projects: resolve(__dirname, 'projects.html'),
           gallery: resolve(__dirname, 'gallery.html'),
-          recruitment: resolve(__dirname, 'recruitment.html')
+          recruitment: resolve(__dirname, 'recruitment.html'),
+          'team-intro': resolve(__dirname, 'team-intro.html'),
+          'leader-intro': resolve(__dirname, 'leader-intro.html'),
+          'culture': resolve(__dirname, 'culture.html'),
+          'journey': resolve(__dirname, 'journey.html'),
+          'journey-detail': resolve(__dirname, 'journey-detail.html'),
+          'daily': resolve(__dirname, 'daily.html')
         }
       }
     },

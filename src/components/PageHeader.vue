@@ -64,8 +64,9 @@
           </div>
           
           <!-- 团队成员下拉菜单 -->
-          <div 
-            class="nav-item has-dropdown" 
+          <div
+            v-if="memberRoles.length > 0"
+            class="nav-item has-dropdown"
             :class="{ active: currentPage === 'members' }"
             @mouseenter="showMembersDropdown = true"
             @mouseleave="showMembersDropdown = false"
@@ -80,6 +81,7 @@
               </ul>
             </transition>
           </div>
+          <a v-else href="./members.html" class="nav-item" :class="{ active: currentPage === 'members' }">{{ $t('members') }}</a>
           
           <!-- 研究下拉菜单 -->
           <div
@@ -114,23 +116,24 @@
               </ul>
             </transition>
           </div>
+
           <!-- 文化下拉菜单 -->
           <div
             class="nav-item has-dropdown"
-            :class="{ active: currentPage === 'gallery' }"
-            @mouseenter="showGalleryDropdown = true"
-            @mouseleave="showGalleryDropdown = false"
+            :class="{ active: currentPage === 'culture' || currentPage === 'journey' || currentPage === 'daily' }"
+            @mouseenter="showCultureDropdown = true"
+            @mouseleave="showCultureDropdown = false"
           >
-            <a href="./gallery.html" class="nav-link">{{ $t('gallery') }}</a>
+            <a href="./journey.html" class="nav-link">{{ $t('culture') }}</a>
             <transition name="dropdown">
-              <ul v-show="showGalleryDropdown" class="dropdown-menu">
-                <li><a href="./gallery.html" class="dropdown-item">全部</a></li>
-                <li v-for="category in galleryCategories" :key="category.id">
-                  <a :href="`./gallery.html?category=${category.id}`" class="dropdown-item">{{ category.name }}</a>
-                </li>
+              <ul v-show="showCultureDropdown" class="dropdown-menu">
+                <li><a href="./journey.html" class="dropdown-item">{{ $t('culture.researchJourney') }}</a></li>
+                <li><a href="./daily.html" class="dropdown-item">{{ $t('culture.dailyLife') }}</a></li>
+                <li><a href="./culture.html" class="dropdown-item">{{ $t('culture.teamStyle') }}</a></li>
               </ul>
             </transition>
           </div>
+
           <a href="./recruitment.html" class="nav-item" :class="{ active: currentPage === 'recruitment' }">{{ $t('recruitment') }}</a>
         </nav>
       </div>
@@ -142,7 +145,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import i18n from '../utils/i18n'
-import { newsApi, membersApi, galleryApi } from '../api'
+import { newsApi, membersApi } from '../api'
 
 const currentPage = ref('')
 const { locale } = useI18n()
@@ -152,15 +155,13 @@ const currentLocale = ref(locale.value)
 const showNewsDropdown = ref(false)
 const showMembersDropdown = ref(false)
 const showProjectsDropdown = ref(false)
-const showGalleryDropdown = ref(false)
+const showCultureDropdown = ref(false)
 const showPublicationsDropdown = ref(false)
 
 // 新闻年份列表
 const newsYears = ref([])
 // 成员角色列表
 const memberRoles = ref([])
-// 相册分类列表
-const galleryCategories = ref([])
 
 // 监听语言变化，更新currentLocale
 watch(locale, (newValue) => {
@@ -193,37 +194,40 @@ const loadNewsYears = async () => {
   }
 }
 
-// 加载成员角色
+// 加载成员角色（只显示有成员的角色）
 const loadMemberRoles = async () => {
   try {
-    const res = await membersApi.getRoles()
-    if (res.code === 200 && res.data) {
-      // 按排序顺序排列
-      memberRoles.value = res.data.sort((a, b) => a.sortOrder - b.sortOrder)
+    // 先加载所有角色
+    const rolesRes = await membersApi.getRoles()
+    if (rolesRes.code !== 200 || !rolesRes.data) {
+      memberRoles.value = []
+      return
     }
+
+    // 加载所有成员
+    const membersRes = await membersApi.getList()
+    if (membersRes.code !== 200 || !membersRes.data) {
+      memberRoles.value = []
+      return
+    }
+
+    // 统计每个角色的成员数量
+    const roleCounts = {}
+    membersRes.data.forEach(member => {
+      if (member.roleId) {
+        // 统一转换为字符串进行比较
+        const roleId = String(member.roleId)
+        roleCounts[roleId] = (roleCounts[roleId] || 0) + 1
+      }
+    })
+
+    // 只保留有成员的角色
+    memberRoles.value = rolesRes.data
+      .filter(role => roleCounts[String(role.id)] > 0)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
   } catch (error) {
     console.error('加载成员角色失败:', error)
-    // 使用默认角色
-    memberRoles.value = [
-      { id: 1, name: '指导教师', sortOrder: 1 },
-      { id: 2, name: '专任教师', sortOrder: 2 },
-      { id: 3, name: '研究生', sortOrder: 3 },
-      { id: 4, name: '校友', sortOrder: 4 }
-    ]
-  }
-}
-
-// 加载相册分类
-const loadGalleryCategories = async () => {
-  try {
-    const res = await galleryApi.getCategories()
-    if (res.code === 200 && res.data) {
-      // 按排序顺序排列
-      galleryCategories.value = res.data.sort((a, b) => a.sortOrder - b.sortOrder)
-    }
-  } catch (error) {
-    console.error('加载相册分类失败:', error)
-    galleryCategories.value = []
+    memberRoles.value = []
   }
 }
 
@@ -244,16 +248,21 @@ onMounted(() => {
     currentPage.value = 'partners'
   } else if (path.includes('projects.html')) {
     currentPage.value = 'projects'
-  } else if (path.includes('gallery.html')) {
-    currentPage.value = 'gallery'
+  } else if (path.includes('culture.html')) {
+    currentPage.value = 'culture'
+  } else if (path.includes('journey.html')) {
+    currentPage.value = 'journey'
+  } else if (path.includes('journey-detail.html')) {
+    currentPage.value = 'journey'
   } else if (path.includes('recruitment.html')) {
     currentPage.value = 'recruitment'
+  } else if (path.includes('daily.html')) {
+    currentPage.value = 'daily'
   }
-  
+
   // 加载数据
   loadNewsYears()
   loadMemberRoles()
-  loadGalleryCategories()
 })
 </script>
 
@@ -261,6 +270,8 @@ onMounted(() => {
 .header {
   background: white;
   box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 100;
 }
 
 /* Logo横幅 - 相对定位容器 */

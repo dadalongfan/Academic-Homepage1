@@ -1,0 +1,249 @@
+{
+  "timestamp": "2026-02-08T17:12:45+08:00",
+  "projectName": "academic",
+  "projectPath": "D:\\sx\\home\\academic",
+  "projectType": "vue3-mpa",
+  "description": "夏铭副教授学术个人网站前台展示系统",
+  "scanCoverage": {
+    "totalFiles": 48,
+    "scannedFiles": 48,
+    "coveragePercentage": 100,
+    "lastScanDate": "2026-02-08"
+  },
+  "rootModule": {
+    "path": "D:\\sx\\home\\academic",
+    "documentation": "CLAUDE.md",
+    "entryPoints": [
+      "index.html",
+      "news.html",
+      "members.html",
+      "publications.html",
+      "projects.html",
+      "gallery.html",
+      "recruitment.html",
+      "team-intro.html",
+      "leader-intro.html"
+    ],
+    "configurationFiles": [
+      "package.json",
+      "vite.config.js",
+      ".gitignore"
+    ]
+  },
+  "modules": [
+    {
+      "name": "Home",
+      "path": "src/pages/Home",
+      "documentation": "src/pages/Home/CLAUDE.md",
+      "type": "page",
+      "entry": "index.html -> /src/pages/Home/main.js",
+      "components": ["index.vue", "App.vue"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/news",
+        "@/api/publications",
+        "@/api/slideshow",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "News",
+      "path": "src/pages/News",
+      "documentation": "src/pages/News/CLAUDE.md",
+      "type": "page",
+      "entry": "news.html -> /src/pages/News/main.js",
+      "components": ["index.vue", "Detail.vue", "App.vue"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/news",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "Members",
+      "path": "src/pages/Members",
+      "documentation": "src/pages/Members/CLAUDE.md",
+      "type": "page",
+      "entry": "members.html -> /src/pages/Members/main.js",
+      "components": ["index.vue", "App.vue"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/members",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "Publications",
+      "path": "src/pages/Publications",
+      "documentation": "src/pages/Publications/CLAUDE.md",
+      "type": "page",
+      "entry": "publications.html -> /src/pages/Publications/main.js",
+      "components": ["index.vue", "App.vue"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/publications",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "Projects",
+      "path": "src/pages/Projects",
+      "documentation": "src/pages/Projects/CLAUDE.md",
+      "type": "page",
+      "entry": "projects.html -> /src/pages/Projects/main.js",
+      "components": ["index.vue", "App.vue"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/projects",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "Gallery",
+      "path": "src/pages/Gallery",
+      "documentation": "src/pages/Gallery/CLAUDE.md",
+      "type": "page",
+      "entry": "gallery.html -> /src/pages/Gallery/main.js",
+      "components": ["index.vue", "App.vue"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/gallery",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "Recruitment",
+      "path": "src/pages/Recruitment",
+      "documentation": "src/pages/Recruitment/CLAUDE.md",
+      "type": "page",
+      "entry": "recruitment.html -> /src/pages/Recruitment/main.js",
+      "components": ["index.vue", "App.vue"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/recruitment",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "LeaderIntro",
+      "path": "src/pages/LeaderIntro",
+      "documentation": "src/pages/LeaderIntro/CLAUDE.md",
+      "type": "page",
+      "entry": "leader-intro.html -> /src/pages/LeaderIntro/main.js",
+      "components": ["index.vue", "App.vue", "index.html"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/leader",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "TeamIntro",
+      "path": "src/pages/TeamIntro",
+      "documentation": "src/pages/TeamIntro/CLAUDE.md",
+      "type": "page",
+      "entry": "team-intro.html -> /src/pages/TeamIntro/main.js",
+      "components": ["index.vue", "App.vue", "index.html"],
+      "dependencies": [
+        "@/components/PageHeader",
+        "@/components/PageFooter",
+        "@/api/leader",
+        "@/utils/i18n"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "Components",
+      "path": "src/components",
+      "documentation": "src/components/CLAUDE.md",
+      "type": "shared",
+      "components": [
+        "PageHeader.vue",
+        "PageFooter.vue"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "API",
+      "path": "src/api",
+      "documentation": "src/api/CLAUDE.md",
+      "type": "shared",
+      "modules": [
+        "news",
+        "members",
+        "publications",
+        "projects",
+        "gallery",
+        "recruitment",
+        "leader",
+        "slideshow"
+      ],
+      "status": "complete"
+    },
+    {
+      "name": "Utils",
+      "path": "src/utils",
+      "documentation": "src/utils/CLAUDE.md",
+      "type": "shared",
+      "modules": [
+        "api.js",
+        "i18n/index.js",
+        "i18n/translationService.js",
+        "i18n/useTranslation.js"
+      ],
+      "status": "complete"
+    }
+  ],
+  "ignoredPaths": [
+    "node_modules/**",
+    "dist/**",
+    ".git/**",
+    ".vscode/**",
+    "*.lock",
+    "*.log"
+  ],
+  "gaps": [],
+  "recommendations": [
+    {
+      "priority": "P0",
+      "task": "添加自动化测试",
+      "description": "为核心组件添加单元测试（Vitest）和关键流程的 E2E 测试（Playwright）"
+    },
+    {
+      "priority": "P1",
+      "task": "优化翻译性能",
+      "description": "实现翻译预加载机制，优化缓存策略"
+    },
+    {
+      "priority": "P1",
+      "task": "添加类型检查",
+      "description": "引入 TypeScript 或使用 JSDoc + Vue TSC"
+    },
+    {
+      "priority": "P2",
+      "task": "优化构建产物",
+      "description": "代码分割优化、图片资源压缩、CDN 配置"
+    },
+    {
+      "priority": "P2",
+      "task": "增强 SEO",
+      "description": "添加 meta 标签管理、生成 sitemap.xml、结构化数据"
+    }
+  ]
+}

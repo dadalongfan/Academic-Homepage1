@@ -6,122 +6,119 @@
       <p>{{ $t('common.loading') }}</p>
     </div>
 
-    <!-- 主容器：幻灯片 + 团队简介（左） + 个人简介（右） -->
-    <div v-else class="home-hero">
-      <!-- 左侧列：幻灯片 + 团队简介 (70%) -->
-      <div class="left-column">
-        <!-- 图片幻灯片 -->
+    <template v-else>
+      <!-- 首页英雄区域：幻灯片 + 图片滚动 -->
+      <div class="home-hero-section">
+        <!-- 左侧：幻灯片 -->
         <div
           class="slideshow-container"
           @mouseenter="pauseSlideshow"
           @mouseleave="resumeSlideshow"
         >
-          <div
-            v-for="(img, index) in slides"
-            :key="index"
-            class="slide"
-            :class="{ active: currentSlide === index }"
-          >
-            <img :src="img" alt="幻灯片" />
-          </div>
-
-          <!-- 左箭头 -->
-          <button class="slide-arrow slide-arrow-left" @click="prevSlide">
-            ‹
-          </button>
-
-          <!-- 右箭头 -->
-          <button class="slide-arrow slide-arrow-right" @click="nextSlide">
-            ›
-          </button>
+        <div
+          v-for="(img, index) in slides"
+          :key="index"
+          class="slide"
+          :class="{ active: currentSlide === index }"
+        >
+          <img :src="img" alt="幻灯片" />
         </div>
 
-        <!-- 团队简介 -->
-        <div class="section-card team-card">
-          <h3 class="section-title">{{ $t('团队简介') }}</h3>
-          <div class="team-content">
-            <div v-if="displayLeaderInfo.teamIntroduction" class="team-text" v-html="displayLeaderInfo.teamIntroduction"></div>
-          </div>
-        </div>
+        <!-- 左箭头 -->
+        <button class="slide-arrow slide-arrow-left" @click="prevSlide">
+          ‹
+        </button>
+
+        <!-- 右箭头 -->
+        <button class="slide-arrow slide-arrow-right" @click="nextSlide">
+          ›
+        </button>
       </div>
 
-      <!-- 右侧列：个人简介 (30%) -->
-      <div class="right-column">
-        <div class="bio-sidebar">
-        <!-- 头像+职称信息区域 -->
-        <div class="bio-header">
-          <div class="bio-header-left">
-            <img :src="displayLeaderInfo.avatarUrl || '/照片.png'" :alt="displayLeaderInfo.name || '夏铭'" class="bio-header-photo" />
-          </div>
-          <div class="bio-header-right">
-            <h3 class="bio-header-name">{{ displayLeaderInfo.name || '夏铭' }}</h3>
-            <p class="bio-header-title">{{ displayLeaderInfo.title || '副教授 · 硕士生导师' }}</p>
-            <p class="bio-header-affiliation">{{ displayLeaderInfo.institution || '南京工业大学化工学院' }}</p>
-            <p class="bio-header-lab">{{ $t('材料化学工程全国重点实验室') }}</p>
-          </div>
-        </div>
-
-        <!-- 个人简介 -->
-        <template v-if="displayLeaderInfo.introduction">
-          <h3 class="section-title">{{ $t('个人简介') }}</h3>
-          <div class="bio-content">
-            <div class="bio-text" v-html="displayLeaderInfo.introduction"></div>
-          </div>
-          <div class="bio-divider"></div>
-        </template>
-
-        <!-- 教育经历 -->
-        <template v-if="educationList.length > 0">
-          <h3 class="section-title">{{ $t('教育经历') }}</h3>
-          <el-timeline class="timeline">
-            <el-timeline-item
-              v-for="(edu, index) in educationList"
-              :key="index"
-              :timestamp="`${edu.startDate ? edu.startDate : ''} - ${edu.endDate ? edu.endDate : $t('至今')}`"
-              placement="top"
-            >
-              <el-card>
-                <h4>{{ edu.institution }}</h4>
-                <p>{{ edu.degree }} · {{ edu.major }}</p>
-                <p v-if="edu.description" class="text-secondary">{{ edu.description }}</p>
-              </el-card>
-            </el-timeline-item>
-          </el-timeline>
-          <div class="bio-divider"></div>
-        </template>
-
-        <!-- 工作经历 -->
-        <template v-if="workList.length > 0">
-          <h3 class="section-title">{{ $t('工作经历') }}</h3>
-          <el-timeline class="timeline">
-            <el-timeline-item
-              v-for="(work, index) in workList"
-              :key="index"
-              :timestamp="`${work.startDate ? work.startDate : ''} - ${work.endDate ? work.endDate : $t('至今')}`"
-              placement="top"
-            >
-              <el-card>
-                <h4>{{ work.company }}</h4>
-                <p>{{ work.position }}</p>
-                <p v-if="work.description" class="text-secondary">{{ work.description }}</p>
-              </el-card>
-            </el-timeline-item>
-          </el-timeline>
-        </template>
-        </div>
-      </div>
+      <!-- 右侧：图片滚动轮播 -->
+      <ImageScrollCarousel />
     </div>
 
+    <!-- 年度大事件滚动条 -->
+    <AnnualEventsCarousel />
 
+    <!-- 最新动态和代表论文 -->
+      <div class="home-top-section">
+        <!-- 左边：最新动态 -->
+        <div class="home-section-left">
+          <div class="section-header">
+            <h3 class="section-title-small">最新动态</h3>
+            <a href="./news.html" class="more-link">更多 ></a>
+          </div>
+          <div class="news-list">
+            <a v-for="news in latestNews" :key="news.id" :href="`./news-detail.html?id=${news.id}`" class="news-item">
+              <span class="news-title">{{ news.title }}</span>
+              <span class="news-date">{{ formatDate(news.publishDate) }}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 右边：代表论文 -->
+        <div class="home-section-right">
+          <div class="section-header">
+            <h3 class="section-title-small">代表论文</h3>
+            <a href="./publications.html" class="more-link">更多 ></a>
+          </div>
+          <div class="papers-list">
+            <a v-for="paper in latestPapers" :key="paper.id" :href="`./publications.html`" class="paper-item">
+              <span class="paper-title">{{ paper.title }}</span>
+              <span class="paper-journal">{{ paper.journal || '' }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4个导航卡片 -->
+      <div class="nav-cards">
+        <!-- 研究方向 -->
+        <a href="./publications.html" class="nav-card">
+          <div class="nav-icon">🔬</div>
+          <h3 class="nav-title">研究方向</h3>
+          <p class="nav-desc">课题组长期开展先进化工技术研究，主要方向包括：催化反应工程、煤间接液化、绿色化工过程、化工过程强化等。</p>
+          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+        </a>
+
+        <!-- 课题组简介 -->
+        <a href="./team-intro.html" class="nav-card">
+          <div class="nav-icon">👥</div>
+          <h3 class="nav-title">课题组简介</h3>
+          <p class="nav-desc">{{ teamIntroBrief || '课题组致力于化工领域的前沿研究，拥有完善的实验设施和优秀的科研团队。' }}</p>
+          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+        </a>
+
+        <!-- 负责人简介 -->
+        <a href="./leader-intro.html" class="nav-card">
+          <div class="nav-icon">👤</div>
+          <h3 class="nav-title">负责人简介</h3>
+          <p class="nav-desc">{{ leaderIntroBrief || '课题组负责人，长期从事化工领域的教学与科研工作，在催化反应工程等方面取得重要成果。' }}</p>
+          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+        </a>
+
+        <!-- 招贤纳士 -->
+        <a href="./recruitment.html" class="nav-card">
+          <div class="nav-icon">🎓</div>
+          <h3 class="nav-title">招贤纳士</h3>
+          <p class="nav-desc">欢迎有志于化工研究的优秀学子加入课题组！我们提供良好的科研环境和广阔的发展平台。</p>
+          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+        </a>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
-import { slideshowApi, leaderApi } from '../../api'
+import { slideshowApi, leaderApi, newsApi, publicationsApi } from '../../api'
 import { API_BASE_URL } from '../../config'
 import { useTranslation } from '../../utils/i18n/useTranslation'
+import ImageScrollCarousel from '@/components/ImageScrollCarousel.vue'
+import AnnualEventsCarousel from '@/components/AnnualEventsCarousel.vue'
 
 // 负责人信息翻译
 const {
@@ -134,38 +131,41 @@ const {
   htmlFields: ['introduction', 'teamIntroduction']
 })
 
-// 教育经历翻译
-const {
-  originalData: originalEducation,
-  displayData: educationList,
-  updateOriginalData: updateEducation,
-  isTranslating: isTranslatingEducation
-} = useTranslation([], {
-  textFields: ['institution', 'degree', 'major', 'description']
-})
-
-// 工作经历翻译
-const {
-  originalData: originalWork,
-  displayData: workList,
-  updateOriginalData: updateWork,
-  isTranslating: isTranslatingWork
-} = useTranslation([], {
-  textFields: ['company', 'position', 'description']
-})
-
 // 计算是否正在翻译
-const isTranslating = computed(() => 
-  isTranslatingLeaderInfo.value || 
-  isTranslatingEducation.value || 
-  isTranslatingWork.value
-)
+const isTranslating = computed(() => isTranslatingLeaderInfo.value)
+
+// 团队简介简短描述（取前50个字符）
+const teamIntroBrief = computed(() => {
+  const text = displayLeaderInfo.value.teamIntroduction || ''
+  // 去除HTML标签
+  const plainText = text.replace(/<[^>]+>/g, '')
+  return plainText.length > 50 ? plainText.substring(0, 50) + '...' : plainText
+})
+
+// 负责人简介简短描述（取前50个字符）
+const leaderIntroBrief = computed(() => {
+  const text = displayLeaderInfo.value.introduction || ''
+  // 去除HTML标签
+  const plainText = text.replace(/<[^>]+>/g, '')
+  return plainText.length > 50 ? plainText.substring(0, 50) + '...' : plainText
+})
 
 // 图片幻灯片
 const slides = ref([])
-const loading = ref(false)
 const currentSlide = ref(0)
 let slideInterval = null
+
+// 最新动态列表
+const latestNews = ref([])
+
+// 代表论文列表
+const latestPapers = ref([])
+
+// 格式化日期
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr.substring(0, 10)
+}
 
 const nextSlide = () => {
   currentSlide.value = (currentSlide.value + 1) % slides.value.length
@@ -191,7 +191,6 @@ const resumeSlideshow = () => {
 // 获取幻灯片数据
 const fetchSlideshows = async () => {
   try {
-    loading.value = true
     const res = await slideshowApi.getList()
     const data = res.data || []
     // 将相对路径转换为完整URL
@@ -203,8 +202,6 @@ const fetchSlideshows = async () => {
     })
   } catch (error) {
     console.error('获取幻灯片失败:', error)
-  } finally {
-    loading.value = false
   }
 }
 
@@ -213,45 +210,43 @@ const fetchLeaderInfo = async () => {
   try {
     const res = await leaderApi.getInfo()
     const data = res.data || {}
-    
-    // 处理头像URL，转换为完整URL
-    if (data.avatarUrl && !data.avatarUrl.startsWith('http://') && !data.avatarUrl.startsWith('https://')) {
-      data.avatarUrl = `${API_BASE_URL}${data.avatarUrl}`
-    }
-    
     updateLeaderInfo(data)
   } catch (error) {
     console.error('获取负责人信息失败:', error)
   }
 }
 
-// 获取负责人教育经历
-const fetchLeaderEducation = async () => {
+// 获取最新动态
+const fetchLatestNews = async () => {
   try {
-    const res = await leaderApi.getEducation()
+    const res = await newsApi.getList()
     const data = res.data || []
-    updateEducation(data)
+    // 按发布时间降序排序，取前5条
+    latestNews.value = data
+      .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
+      .slice(0, 5)
   } catch (error) {
-    console.error('获取负责人教育经历失败:', error)
+    console.error('获取最新动态失败:', error)
   }
 }
 
-// 获取负责人工作经历
-const fetchLeaderWorkExperience = async () => {
+// 获取代表论文
+const fetchLatestPapers = async () => {
   try {
-    const res = await leaderApi.getWorkExperience()
+    const res = await publicationsApi.getPapers()
     const data = res.data || []
-    updateWork(data)
+    // 取前5条
+    latestPapers.value = data.slice(0, 5)
   } catch (error) {
-    console.error('获取负责人工作经历失败:', error)
+    console.error('获取代表论文失败:', error)
   }
 }
 
 onMounted(() => {
   fetchSlideshows()
   fetchLeaderInfo()
-  fetchLeaderEducation()
-  fetchLeaderWorkExperience()
+  fetchLatestNews()
+  fetchLatestPapers()
   resumeSlideshow()
 })
 
@@ -279,50 +274,20 @@ onUnmounted(() => {
   }
 }
 
-/* 主容器：使用 Grid 布局 */
-.home-hero {
+/* 首页英雄区域 */
+.home-hero-section {
   display: grid;
-  grid-template-columns: 7fr 3fr; /* 70% : 30% */
-  gap: var(--spacing-lg);
+  grid-template-columns: 1fr 300px;
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
-  align-items: start;
-}
-
-/* 左侧列：幻灯片 + 团队简介 */
-.left-column {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-/* 右侧列：个人简介 */
-.right-column {
-  /* 个人简介会自然延伸 */
 }
 
 /* 图片幻灯片 */
 .slideshow-container {
-  height: auto;
-  min-height: 500px;
-  max-height: 700px;
+  height: 500px;
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-}
-
-/* 个人简介侧边栏 - 移除高度限制 */
-.bio-sidebar {
-  background: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-lg);
-  height: auto;
-  overflow-y: visible;
-  transition: box-shadow 0.3s ease;
-}
-
-.bio-sidebar:hover {
   box-shadow: var(--shadow-md);
 }
 
@@ -343,7 +308,8 @@ onUnmounted(() => {
 .slide img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #f5f5f5;
 }
 
 /* 幻灯片箭头 */
@@ -381,177 +347,172 @@ onUnmounted(() => {
   right: 20px;
 }
 
-/* 头像+职称信息区域 */
-.bio-sidebar .bio-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  border-bottom: 2px solid var(--border-color);
-  text-align: center;
-}
-
-.bio-header-left {
-  flex-shrink: 0;
-}
-
-.bio-header-photo {
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-full);
-  object-fit: cover;
-  border: 3px solid var(--primary-color);
-  box-shadow: var(--shadow-md);
-}
-
-.bio-header-right {
-  flex: 1;
-}
-
-.bio-header-name {
-  font-family: var(--font-serif);
-  font-size: 22px;
-  color: var(--primary-color);
-  margin: 0 0 6px 0;
-  font-weight: 700;
-}
-
-.bio-header-title {
-  font-size: 16px;
-  color: var(--secondary-color);
-  margin: 0 0 6px 0;
-  font-weight: 500;
-}
-
-.bio-header-affiliation,
-.bio-header-lab {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0 0 3px 0;
-}
-
-.bio-text {
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 10px;
-  color: var(--text-primary);
-  text-indent: 0;
-}
-
-.stats-grid {
+/* 最新动态和代表论文 */
+.home-top-section {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-md);
-}
-
-.stat-item {
-  text-align: center;
-  padding: var(--spacing-md);
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  border-radius: var(--radius-md);
-  color: white;
-  transition: transform 0.3s ease;
-}
-
-.stat-item:hover {
-  transform: translateY(-5px);
-}
-
-.stat-number {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.content-wrapper {
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
 }
 
-.bio-card {
-  padding: var(--spacing-lg);
-}
-
-.bio-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: var(--spacing-md) 0;
-}
-
-/* 简介侧边栏的标题 */
-.bio-sidebar .section-title {
-  font-size: 18px;
-  margin-bottom: var(--spacing-sm);
-  padding-bottom: 8px;
-  margin-top: var(--spacing-md);
-}
-
-.bio-sidebar .section-title:first-of-type {
-  margin-top: 0;
-}
-
-/* 团队简介样式 */
-.team-card {
-  padding: var(--spacing-lg);
-}
-
-.team-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.team-text {
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--text-primary);
-  text-indent: 2em;
-  margin: 0;
-}
-
-.section-card {
+.home-section-left,
+.home-section-right {
   background: white;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: var(--spacing-md);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--primary-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.section-title-small {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.more-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.more-link:hover {
+  color: var(--primary-color);
+}
+
+.news-list,
+.papers-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.news-item,
+.paper-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
   transition: all 0.3s ease;
 }
 
-.section-card:hover {
-  box-shadow: var(--shadow-md);
+.news-item:hover,
+.paper-item:hover {
+  background: white;
+  box-shadow: var(--shadow-sm);
+  transform: translateX(5px);
 }
 
-.section-title {
-  font-family: var(--font-serif);
-  font-size: 24px;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-md);
-  padding-bottom: 12px;
-  border-bottom: 3px solid var(--primary-color);
+.news-title,
+.paper-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--text-primary);
 }
 
-.bio-card .section-title {
-  margin-top: 0;
+.news-date,
+.paper-journal {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-left: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
-.bio-card .section-title:not(:first-of-type) {
+/* 导航卡片 */
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
   margin-top: var(--spacing-lg);
 }
 
-.timeline {
-  padding-left: 20px;
+.nav-card {
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-lg);
+  text-align: center;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nav-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-5px);
+}
+
+.nav-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin-bottom: var(--spacing-md);
+}
+
+.nav-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+  font-weight: 600;
+}
+
+.nav-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+  flex: 1;
+}
+
+.nav-link {
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.nav-card:hover .nav-link {
+  color: var(--secondary-color);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  color: #999;
 }
 
 /* 响应式设计 */
 @media (max-width: 968px) {
-  .home-hero {
-    grid-template-columns: 1fr; /* 单列布局 */
+  .home-hero-section {
+    grid-template-columns: 1fr;
   }
 
   .slideshow-container {
@@ -559,36 +520,12 @@ onUnmounted(() => {
     max-height: 400px;
   }
 
-  /* 移动端个人简介保持自然延伸 */
-  .bio-sidebar {
-    overflow-y: visible;
+  .home-top-section {
+    grid-template-columns: 1fr;
   }
 
-  .bio-sidebar .bio-header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .bio-header-photo {
-    width: 150px;
-    height: 150px;
-  }
-
-  .bio-header-name {
-    font-size: 24px;
-  }
-
-  .bio-header-title {
-    font-size: 17px;
-  }
-
-  .bio-sidebar .section-title {
-    font-size: 20px;
-  }
-
-  .bio-text {
-    font-size: 15px;
-    text-indent: 2em;
+  .nav-cards {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .slide-arrow {
@@ -604,11 +541,11 @@ onUnmounted(() => {
   .slide-arrow-right {
     right: 10px;
   }
+}
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 576px) {
+  .nav-cards {
+    grid-template-columns: 1fr;
   }
-
-
 }
 </style>

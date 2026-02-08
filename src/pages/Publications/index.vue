@@ -9,7 +9,7 @@
     </div>
 
     <!-- 研究方向 -->
-    <div v-else class="section-card">
+    <div v-else id="section-research" class="section-card">
       <h3 class="subsection-title">研究方向</h3>
       <div class="research-directions">
         <div v-for="direction in researchDirections" :key="direction.id" class="direction-card">
@@ -48,7 +48,7 @@
     -->
 
     <!-- 科研项目 -->
-    <div class="section-card">
+    <div id="section-projects" class="section-card">
       <h3 class="subsection-title">{{ $t('projects.title') }}</h3>
       <el-table :data="projects" style="width: 100%" stripe>
         <el-table-column type="index" :label="$t('common.index')" width="60" />
@@ -72,7 +72,7 @@
     </div>
 
     <!-- 代表论文 -->
-    <div class="section-card">
+    <div id="section-papers" class="section-card">
       <h3 class="subsection-title">{{ $t('publications.papers') }}</h3>
       <div class="papers-list">
         <div v-for="(paper, index) in papers" :key="index" class="paper-item">
@@ -120,7 +120,7 @@
     </div>
 
     <!-- 代表专利 -->
-    <div class="section-card">
+    <div id="section-patents" class="section-card">
       <h3 class="subsection-title">{{ $t('publications.patents') }}</h3>
       <div class="patents-list">
         <div v-for="(patent, index) in patents" :key="patent.id" class="patent-item">
@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { Link, Download, Trophy, Loading } from '@element-plus/icons-vue'
 import { getFullFileUrl } from '@/utils/api'
 import { publicationsApi, projectsApi } from '@/api'
@@ -392,9 +392,33 @@ const loadAllData = async () => {
   }
 }
 
+// 解析URL参数并跳转到指定区块
+const scrollToSection = () => {
+  setTimeout(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const section = urlParams.get('section')
+    if (section) {
+      const targetElement = document.getElementById(`section-${section}`)
+      if (targetElement) {
+        targetElement.scrollIntoView({
+          behavior: 'auto',
+          block: 'start'
+        })
+        console.log(`跳转到区块: ${section}`)
+      } else {
+        console.warn(`未找到区块: section-${section}`)
+      }
+    }
+  }, 300)
+}
+
 // 组件挂载时加载数据
 onMounted(() => {
-  loadAllData()
+  loadAllData().then(() => {
+    nextTick(() => {
+      scrollToSection()
+    })
+  })
 })
 </script>
 

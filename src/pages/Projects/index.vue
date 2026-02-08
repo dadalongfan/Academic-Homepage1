@@ -3,7 +3,7 @@
     <h2 class="section-title">{{ $t('projects.title') }}</h2>
 
     <!-- 专业能力 -->
-    <div class="section-card">
+    <div id="tab-expertise" class="section-card">
       <h3 class="subsection-title">{{ $t('projects.expertise') }}</h3>
 
       <!-- 翻译状态 -->
@@ -21,7 +21,7 @@
     </div>
 
     <!-- 合作伙伴 -->
-    <div class="section-card">
+    <div id="tab-partners" class="section-card">
       <h3 class="subsection-title">{{ $t('projects.partners') }}</h3>
 
       <!-- 翻译状态 -->
@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
 import { publicationsApi } from '@/api'
 import { API_BASE_URL } from '@/config'
@@ -147,9 +147,33 @@ const loadPartners = async () => {
   }
 }
 
+// 解析URL参数并跳转到指定区块
+const scrollToTab = () => {
+  setTimeout(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tab = urlParams.get('tab')
+    if (tab) {
+      const targetElement = document.getElementById(`tab-${tab}`)
+      if (targetElement) {
+        targetElement.scrollIntoView({
+          behavior: 'auto',
+          block: 'start'
+        })
+        console.log(`跳转到区块: ${tab}`)
+      } else {
+        console.warn(`未找到区块: tab-${tab}`)
+      }
+    }
+  }, 300)
+}
+
 onMounted(() => {
   loadExpertise()
   loadPartners()
+
+  nextTick(() => {
+    scrollToTab()
+  })
 })
 </script>
 

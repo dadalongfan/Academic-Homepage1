@@ -10,7 +10,8 @@ const messages = {
     'members': '团队成员',
     'publications': '研究',
     'projects': '应用开发',
-    'gallery': '文化',
+    'gallery': '相册',
+    'culture': '文化',
     'recruitment': '招贤纳士',
     'about': '关于我们',
     'contact': '联系方式',
@@ -36,6 +37,7 @@ const messages = {
     'common.loading': '加载中...',
     'common.close': '关闭',
     'common.index': '序号',
+    'common.backToList': '返回列表',
     // 成员相关
     'members.title': '团队成员',
     'members.all': '全部成员',
@@ -93,6 +95,18 @@ const messages = {
     'gallery.description': '描述',
     'gallery.uploadDate': '上传日期',
     'gallery.noDate': '未知日期',
+    // 文化模块
+    'culture.title': '文化',
+    'culture.teamStyle': '团队风采',
+    'culture.researchJourney': '研究征途',
+    'culture.dailyLife': '研途趣事',
+    // 研究征途
+    'journey.title': '研究征途',
+    'journey.empty': '暂无征途数据',
+    'journey.viewDetail': '查看详情',
+    // 研途趣事
+    'daily.title': '研途趣事',
+    'daily.empty': '暂无趣事照片',
     // 项目相关
     'projects.title': '应用开发',
     'projects.expertise': '专业能力',
@@ -122,7 +136,8 @@ const messages = {
     'members': 'Team Members',
     'publications': 'Research',
     'projects': 'Application Development',
-    'gallery': 'Culture',
+    'gallery': 'Gallery',
+    'culture': 'Culture',
     'recruitment': 'Join Us',
     'about': 'About Us',
     'contact': 'Contact',
@@ -144,6 +159,7 @@ const messages = {
     'common.loading': 'Loading...',
     'common.close': 'Close',
     'common.index': 'No.',
+    'common.backToList': 'Back to List',
     'members.title': 'Team Members',
     'members.all': 'All Members',
     'members.supervisors': 'Supervisors',
@@ -192,6 +208,18 @@ const messages = {
     'gallery.description': 'Description',
     'gallery.uploadDate': 'Upload Date',
     'gallery.noDate': 'Unknown date',
+    // 文化模块
+    'culture.title': 'Culture',
+    'culture.teamStyle': 'Team Gallery',
+    'culture.researchJourney': 'Research Journey',
+    'culture.dailyLife': 'Daily Life',
+    // 研究征途
+    'journey.title': 'Research Journey',
+    'journey.empty': 'No journey data',
+    'journey.viewDetail': 'View Detail',
+    // 研途趣事
+    'daily.title': 'Daily Life',
+    'daily.empty': 'No moments yet',
     'projects.title': 'Application Development',
     'projects.expertise': 'Professional Expertise',
     'projects.partners': 'Partners',

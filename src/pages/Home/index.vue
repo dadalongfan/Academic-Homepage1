@@ -47,8 +47,8 @@
         <!-- 左边：最新动态 -->
         <div class="home-section-left">
           <div class="section-header">
-            <h3 class="section-title-small">最新动态</h3>
-            <a href="./news.html" class="more-link">更多 ></a>
+            <h3 class="section-title-small">{{ $t('home.latestNews') }}</h3>
+            <a href="./news.html" class="more-link">{{ $t('home.more') }} ></a>
           </div>
           <div class="news-list">
             <a v-for="news in latestNews" :key="news.id" :href="`./news-detail.html?id=${news.id}`" class="news-item">
@@ -61,8 +61,8 @@
         <!-- 右边：代表论文 -->
         <div class="home-section-right">
           <div class="section-header">
-            <h3 class="section-title-small">代表论文</h3>
-            <a href="./publications.html" class="more-link">更多 ></a>
+            <h3 class="section-title-small">{{ $t('home.featuredPapers') }}</h3>
+            <a href="./publications.html" class="more-link">{{ $t('home.more') }} ></a>
           </div>
           <div class="papers-list">
             <a v-for="paper in latestPapers" :key="paper.id" :href="`./publications.html`" class="paper-item">
@@ -77,34 +77,42 @@
       <div class="nav-cards">
         <!-- 研究方向 -->
         <a href="./publications.html" class="nav-card">
-          <div class="nav-icon">🔬</div>
-          <h3 class="nav-title">研究方向</h3>
-          <p class="nav-desc">课题组长期开展先进化工技术研究，主要方向包括：催化反应工程、煤间接液化、绿色化工过程、化工过程强化等。</p>
-          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+          <div class="nav-icon">
+            <el-icon :size="32" color="#fff"><Collection /></el-icon>
+          </div>
+          <h3 class="nav-title">{{ $t('home.researchDirection') }}</h3>
+          <p class="nav-desc">{{ $t('home.researchDirectionDesc') }}</p>
+          <span class="nav-link">{{ $t('home.viewAll') }}</span>
         </a>
 
         <!-- 课题组简介 -->
         <a href="./team-intro.html" class="nav-card">
-          <div class="nav-icon">👥</div>
-          <h3 class="nav-title">课题组简介</h3>
-          <p class="nav-desc">{{ teamIntroBrief || '课题组致力于化工领域的前沿研究，拥有完善的实验设施和优秀的科研团队。' }}</p>
-          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+          <div class="nav-icon">
+            <el-icon :size="32" color="#fff"><UserFilled /></el-icon>
+          </div>
+          <h3 class="nav-title">{{ $t('home.teamIntro') }}</h3>
+          <p class="nav-desc">{{ teamIntroBrief || $t('home.teamIntroDesc') }}</p>
+          <span class="nav-link">{{ $t('home.viewAll') }}</span>
         </a>
 
         <!-- 负责人简介 -->
         <a href="./leader-intro.html" class="nav-card">
-          <div class="nav-icon">👤</div>
-          <h3 class="nav-title">负责人简介</h3>
-          <p class="nav-desc">{{ leaderIntroBrief || '课题组负责人，长期从事化工领域的教学与科研工作，在催化反应工程等方面取得重要成果。' }}</p>
-          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+          <div class="nav-icon">
+            <el-icon :size="32" color="#fff"><User /></el-icon>
+          </div>
+          <h3 class="nav-title">{{ $t('home.leaderIntro') }}</h3>
+          <p class="nav-desc">{{ leaderIntroBrief || $t('home.leaderIntroDesc') }}</p>
+          <span class="nav-link">{{ $t('home.viewAll') }}</span>
         </a>
 
         <!-- 招贤纳士 -->
         <a href="./recruitment.html" class="nav-card">
-          <div class="nav-icon">🎓</div>
-          <h3 class="nav-title">招贤纳士</h3>
-          <p class="nav-desc">欢迎有志于化工研究的优秀学子加入课题组！我们提供良好的科研环境和广阔的发展平台。</p>
-          <span class="nav-link">查看全部&gt;&gt;&gt;</span>
+          <div class="nav-icon">
+            <el-icon :size="32" color="#fff"><School /></el-icon>
+          </div>
+          <h3 class="nav-title">{{ $t('home.recruitment') }}</h3>
+          <p class="nav-desc">{{ $t('home.recruitmentDesc') }}</p>
+          <span class="nav-link">{{ $t('home.viewAll') }}</span>
         </a>
       </div>
     </template>
@@ -113,7 +121,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, Collection, UserFilled, User, School } from '@element-plus/icons-vue'
 import { slideshowApi, leaderApi, newsApi, publicationsApi } from '../../api'
 import { API_BASE_URL } from '../../config'
 import { useTranslation } from '../../utils/i18n/useTranslation'
@@ -131,8 +139,31 @@ const {
   htmlFields: ['introduction', 'teamIntroduction']
 })
 
+// 最新动态翻译
+const {
+  originalData: originalNewsList,
+  displayData: displayNewsList,
+  updateOriginalData: updateNewsList,
+  isTranslating: isTranslatingNews
+} = useTranslation([], {
+  textFields: ['title', 'category'],
+  htmlFields: ['content']
+})
+
+// 代表论文翻译
+const {
+  originalData: originalPapersList,
+  displayData: displayPapersList,
+  updateOriginalData: updatePapersList,
+  isTranslating: isTranslatingPapers
+} = useTranslation([], {
+  textFields: ['title', 'journal', 'authors']
+})
+
 // 计算是否正在翻译
-const isTranslating = computed(() => isTranslatingLeaderInfo.value)
+const isTranslating = computed(() => 
+  isTranslatingLeaderInfo.value || isTranslatingNews.value || isTranslatingPapers.value
+)
 
 // 团队简介简短描述（取前50个字符）
 const teamIntroBrief = computed(() => {
@@ -155,11 +186,11 @@ const slides = ref([])
 const currentSlide = ref(0)
 let slideInterval = null
 
-// 最新动态列表
-const latestNews = ref([])
+// 最新动态（使用翻译后的数据）
+const latestNews = displayNewsList
 
-// 代表论文列表
-const latestPapers = ref([])
+// 代表论文（使用翻译后的数据）
+const latestPapers = displayPapersList
 
 // 格式化日期
 const formatDate = (dateStr) => {
@@ -222,9 +253,11 @@ const fetchLatestNews = async () => {
     const res = await newsApi.getList()
     const data = res.data || []
     // 按发布时间降序排序，取前5条
-    latestNews.value = data
+    const sortedData = data
       .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
       .slice(0, 5)
+    // 更新翻译数据
+    await updateNewsList(sortedData)
   } catch (error) {
     console.error('获取最新动态失败:', error)
   }
@@ -236,7 +269,9 @@ const fetchLatestPapers = async () => {
     const res = await publicationsApi.getPapers()
     const data = res.data || []
     // 取前5条
-    latestPapers.value = data.slice(0, 5)
+    const slicedData = data.slice(0, 5)
+    // 更新翻译数据
+    await updatePapersList(slicedData)
   } catch (error) {
     console.error('获取代表论文失败:', error)
   }
@@ -435,69 +470,114 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* 导航卡片 */
+/* 导航卡片 - 学术风格 */
 .nav-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-md);
+  gap: 24px;
   margin-top: var(--spacing-lg);
+  padding: 0 10px;
 }
 
 .nav-card {
-  background: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-lg);
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  border: 1px solid #e8e8e8;
+  padding: 32px 24px;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1e3a5f 0%, #2c5282 50%, #3182ce 100%);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
 }
 
 .nav-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(30, 58, 95, 0.15);
+  transform: translateY(-8px);
+  border-color: #d0d7de;
+}
+
+.nav-card:hover::before {
+  transform: scaleX(1);
 }
 
 .nav-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(30, 58, 95, 0.3);
+  position: relative;
+}
+
+.nav-icon::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+}
+
+.nav-icon .el-icon {
+  position: relative;
+  z-index: 1;
 }
 
 .nav-title {
   font-family: var(--font-serif);
-  font-size: 20px;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-sm);
-  font-weight: 600;
+  font-size: 18px;
+  color: #1e3a5f;
+  margin-bottom: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .nav-desc {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: var(--spacing-md);
+  font-size: 13px;
+  color: #4a5568;
+  line-height: 1.8;
+  margin-bottom: 20px;
   flex: 1;
+  text-align: justify;
+  text-align-last: center;
 }
 
 .nav-link {
-  color: var(--primary-color);
-  font-weight: 500;
-  font-size: 14px;
+  color: #2c5282;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  padding: 8px 20px;
+  border: 1.5px solid #2c5282;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  background: transparent;
 }
 
 .nav-card:hover .nav-link {
-  color: var(--secondary-color);
+  background: #2c5282;
+  color: white;
+  border-color: #2c5282;
 }
 
 .loading-container {

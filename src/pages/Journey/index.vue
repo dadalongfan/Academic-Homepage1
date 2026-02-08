@@ -16,8 +16,8 @@
       >
         <!-- 左侧日期盒子 -->
         <div class="journey-date-box">
-          <div class="journey-month">{{ getMonth(journey.createdAt) }}</div>
-          <div class="journey-year">{{ getYear(journey.createdAt) }}</div>
+          <div class="journey-day">{{ getDay(journey.createdAt) }}</div>
+          <div class="journey-month-year">{{ getYearMonth(journey.createdAt) }}</div>
         </div>
 
         <!-- 右侧内容 -->
@@ -90,18 +90,20 @@ const goToDetail = (id) => {
   window.location.href = `/journey-detail.html?id=${id}`
 }
 
-// 获取月份
-const getMonth = (dateString) => {
+// 获取日期（日）
+const getDay = (dateString) => {
   if (!dateString) return '--'
   const date = new Date(dateString)
-  return String(date.getMonth() + 1).padStart(2, '0')
+  return String(date.getDate()).padStart(2, '0')
 }
 
-// 获取年份
-const getYear = (dateString) => {
+// 获取年月
+const getYearMonth = (dateString) => {
   if (!dateString) return '----'
   const date = new Date(dateString)
-  return date.getFullYear()
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return `${year}-${month}`
 }
 
 // 封面图加载失败处理
@@ -156,7 +158,7 @@ onMounted(() => {
   overflow: hidden;
   transition: all 0.3s ease;
   cursor: pointer;
-  min-height: 180px;
+  height: 160px;
 }
 
 .journey-item:hover {
@@ -177,15 +179,15 @@ onMounted(() => {
   text-align: center;
 }
 
-.journey-month {
-  font-size: 24px;
+.journey-day {
+  font-size: 28px;
   font-weight: 700;
   line-height: 1;
 }
 
-.journey-year {
-  font-size: 14px;
-  margin-top: 5px;
+.journey-month-year {
+  font-size: 12px;
+  margin-top: 4px;
   opacity: 0.9;
 }
 
@@ -199,7 +201,8 @@ onMounted(() => {
 
 /* 封面图 */
 .journey-cover {
-  width: 200px;
+  width: 160px;
+  height: 100%;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -230,15 +233,17 @@ onMounted(() => {
   font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.6;
-  margin: 0 0 auto 0;
+  margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  height: 45px;
 }
 
 .journey-meta {
-  margin-top: 12px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .journey-action {

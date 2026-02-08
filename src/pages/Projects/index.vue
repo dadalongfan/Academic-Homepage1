@@ -1,9 +1,17 @@
 <template>
   <div class="projects-page">
-    <h2 class="section-title">{{ $t('projects.title') }}</h2>
+    <div class="page-layout">
+      <!-- 左侧导航栏 -->
+      <PageSideNav
+        :items="navItems"
+        :active-id="activeSection"
+        @item-click="scrollToSectionById"
+      />
 
-    <!-- 专业能力 -->
-    <div id="tab-expertise" class="section-card">
+      <!-- 右侧内容区域 -->
+      <div class="page-content">
+        <!-- 专业能力 -->
+        <div id="tab-expertise" class="section-card">
       <h3 class="subsection-title">{{ $t('projects.expertise') }}</h3>
 
       <!-- 翻译状态 -->
@@ -83,15 +91,19 @@
         </div>
       </template>
     </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
 import { publicationsApi } from '@/api'
 import { API_BASE_URL } from '@/config'
 import { useTranslation } from '@/utils/i18n/useTranslation'
+import i18n from '@/utils/i18n'
+import PageSideNav from '@/components/PageSideNav.vue'
 
 // 专业能力
 const {
@@ -117,6 +129,44 @@ const {
 const isTranslating = computed(() =>
   isTranslatingExpertise.value || isTranslatingPartners.value
 )
+
+// 导航相关
+const activeSection = ref('tab-expertise')
+
+const navItems = computed(() => [
+  { id: 'tab-expertise', label: i18n.global.t('projects.expertise') },
+  { id: 'tab-partners', label: i18n.global.t('projects.partners') }
+])
+
+const scrollToSectionById = (id) => {
+  const targetElement = document.getElementById(id)
+  if (targetElement) {
+    targetElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+    activeSection.value = id
+  }
+}
+
+let scrollTimer = null
+const handleScroll = () => {
+  if (scrollTimer) return
+  scrollTimer = setTimeout(() => {
+    const sections = ['tab-expertise', 'tab-partners']
+    for (const sectionId of sections) {
+      const element = document.getElementById(sectionId)
+      if (element) {
+        const rect = element.getBoundingClientRect()
+        if (rect.top <= 150 && rect.bottom >= 150) {
+          activeSection.value = sectionId
+          break
+        }
+      }
+    }
+    scrollTimer = null
+  }, 100)
+}
 
 // 获取完整图片URL
 const getFullImageUrl = (url) => {
@@ -174,6 +224,13 @@ onMounted(() => {
   nextTick(() => {
     scrollToTab()
   })
+  // 添加滚动监听
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+// 组件卸载时移除滚动监听
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -193,6 +250,25 @@ onMounted(() => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* 页面布局 */
+.page-layout {
+  display: flex;
+  gap: 24px;
+  position: relative;
+}
+
+.page-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .page-layout {
+    flex-direction: column;
   }
 }
 

@@ -1,16 +1,24 @@
 <template>
   <div class="publications-page">
-    <h2 class="section-title">{{ $t('publications.title') }}</h2>
-
     <!-- 翻译状态 -->
     <div v-if="isTranslating" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
       <p>{{ $t('common.loading') }}</p>
     </div>
 
-    <!-- 研究方向 -->
-    <div v-else id="section-research" class="section-card">
-      <h3 class="subsection-title">研究方向</h3>
+    <div v-else class="page-layout">
+      <!-- 左侧导航栏 -->
+      <PageSideNav
+        :items="navItems"
+        :active-id="activeSection"
+        @item-click="scrollToSectionById"
+      />
+
+      <!-- 右侧内容区域 -->
+      <div class="page-content">
+        <!-- 研究方向 -->
+        <div id="section-research" class="section-card">
+      <h3 class="subsection-title">{{ $t('publications.researchDirections') }}</h3>
       <div class="research-directions">
         <div v-for="direction in researchDirections" :key="direction.id" class="direction-card">
           <h4 class="direction-name">{{ direction.name }}</h4>
@@ -49,7 +57,7 @@
 
     <!-- 科研项目 -->
     <div id="section-projects" class="section-card">
-      <h3 class="subsection-title">{{ $t('projects.title') }}</h3>
+      <h3 class="subsection-title">{{ $t('publications.projects') }}</h3>
       <el-table :data="projects" style="width: 100%" stripe>
         <el-table-column type="index" :label="$t('common.index')" width="60" />
         <el-table-column prop="name" :label="$t('projects.name')" min-width="300" />
@@ -161,53 +169,64 @@
       </div>
     </div>
     -->
-
-    <!-- 发表论文统计 -->
-    <div class="section-card">
-      <h3 class="subsection-title">{{ $t('publications.stats') }}</h3>
-      <el-row :gutter="20">
-        <el-col :xs="24" :sm="12" :md="8">
-          <div class="stat-box">
-            <h5>{{ $t('publications.paperStats') }}</h5>
-            <div class="stat-detail">
-              <p>{{ $t('publications.paperStatsDesc1') }}</p>
-              <p>{{ $t('publications.paperStatsDesc2') }}</p>
-            </div>
-          </div>
-        </el-col>
-        <el-col :xs="24" :sm="12" :md="8">
-          <div class="stat-box">
-            <h5>{{ $t('publications.patentStats') }}</h5>
-            <div class="stat-detail">
-              <p>{{ $t('publications.patentStatsDesc1') }}</p>
-              <p>{{ $t('publications.patentStatsDesc2') }}</p>
-            </div>
-          </div>
-        </el-col>
-        <el-col :xs="24" :sm="12" :md="8">
-          <div class="stat-box">
-            <h5>{{ $t('publications.projectStats') }}</h5>
-            <div class="stat-detail">
-              <p>{{ $t('publications.projectStatsDesc1') }}</p>
-              <p>{{ $t('publications.projectStatsDesc2') }}</p>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, onUnmounted, watch } from 'vue'
 import { Link, Download, Trophy, Loading } from '@element-plus/icons-vue'
 import { getFullFileUrl } from '@/utils/api'
 import { publicationsApi, projectsApi } from '@/api'
 import { useTranslation } from '@/utils/i18n/useTranslation'
+import i18n from '@/utils/i18n'
+import PageSideNav from '@/components/PageSideNav.vue'
 
 // 响应式数据
 const loading = ref(true)
 const error = ref('')
+const activeSection = ref('section-research')
+
+// 导航项（使用计算属性支持动态翻译）
+const navItems = computed(() => [
+  { id: 'section-research', label: i18n.global.t('publications.researchDirections') },
+  { id: 'section-projects', label: i18n.global.t('publications.projects') },
+  { id: 'section-papers', label: i18n.global.t('publications.papers') },
+  { id: 'section-patents', label: i18n.global.t('publications.patents') }
+])
+
+// 点击导航项滚动到对应区块
+const scrollToSectionById = (id) => {
+  const targetElement = document.getElementById(id)
+  if (targetElement) {
+    targetElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+    activeSection.value = id
+  }
+}
+
+// 监听页面滚动，高亮当前可见区块
+let scrollTimer = null
+const handleScroll = () => {
+  if (scrollTimer) return
+  scrollTimer = setTimeout(() => {
+    const sections = ['section-research', 'section-projects', 'section-papers', 'section-patents']
+    for (const sectionId of sections) {
+      const element = document.getElementById(sectionId)
+      if (element) {
+        const rect = element.getBoundingClientRect()
+        if (rect.top <= 150 && rect.bottom >= 150) {
+          activeSection.value = sectionId
+          break
+        }
+      }
+    }
+    scrollTimer = null
+  }, 100)
+}
 
 // 阶段成就
 const {
@@ -351,39 +370,6 @@ const loadAllData = async () => {
     }))
     updateProjects(processedProjects)
     
-    // 调试：打印论文数据
-    console.log('论文数据:', papers.value)
-    // 调试：打印第一篇论文的DOI和PDF字段
-    if (papers.value.length > 0) {
-      console.log('第一篇论文的DOI:', papers.value[0].doi)
-      console.log('第一篇论文的PDFURL:', papers.value[0].pdfUrl)
-    }
-
-    // 如果没有数据，使用默认示例数据
-    if (achievements.value.length === 0) {
-      const exampleAchievements = [
-        {
-          title: '钴基费托合成催化剂与反应器技术突破',
-          description: '在钴基费托合成领域取得重大突破，开发了系列高性能钴基催化剂及新型反应器技术。相关成果已成功应用于中试装置及万吨级工程示范，实现了从实验室研究到工业化应用的技术跨越。该技术路线为煤制油产业的发展提供了重要支撑，具有良好的工业应用前景。',
-          icon: '🎯',
-          tags: '中试验证,万吨级示范,产业化应用'
-        },
-        {
-          title: '分离工程与精馏技术创新',
-          description: '针对复杂混合物分离难题，开发了系列新型精馏技术与分离工艺。在萃取精馏、分壁精馏塔设计等方面取得重要进展，提出了多项创新性工艺流程。相关技术在丙酮精制、碳酸二甲酯生产等工业过程中得到应用，为化工分离领域提供了高效解决方案。',
-          icon: '🔬',
-          tags: '工艺创新,节能降耗,工业应用'
-        },
-        {
-          title: '化工过程模拟与优化平台建设',
-          description: '建立了完善的化工过程模拟与优化平台，将计算机模拟与实验研究紧密结合。通过流程模拟、反应器设计优化、操作参数调控等手段，实现了化工过程的智能化设计与优化。该平台成功应用于多个工业项目的工艺开发与优化，显著提升了研发效率和工艺水平。',
-          icon: '⚙️',
-          tags: '数字化设计,智能优化,平台建设'
-        }
-      ]
-      updateAchievements(exampleAchievements)
-    }
-
   } catch (err) {
     console.error('加载数据失败:', err)
     error.value = '加载数据失败，请检查后端服务是否启动'
@@ -419,6 +405,13 @@ onMounted(() => {
       scrollToSection()
     })
   })
+  // 添加滚动监听
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+// 组件卸载时移除滚动监听
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -441,42 +434,23 @@ onMounted(() => {
   }
 }
 
-.stats-overview {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-}
-
-.stat-card {
-  background: white;
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+/* 页面布局 */
+.page-layout {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  transition: all 0.3s ease;
+  gap: 24px;
+  position: relative;
 }
 
-.stat-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-5px);
+.page-content {
+  flex: 1;
+  min-width: 0;
 }
 
-.stat-icon {
-  font-size: 48px;
-}
-
-.stat-number {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--primary-color);
-}
-
-.stat-label {
-  font-size: 14px;
-  color: var(--text-secondary);
+/* 响应式 */
+@media (max-width: 1024px) {
+  .page-layout {
+    flex-direction: column;
+  }
 }
 
 .section-card {
@@ -751,157 +725,7 @@ onMounted(() => {
   font-size: 14px;
 }
 
-.stat-box {
-  padding: var(--spacing-md);
-  background: var(--bg-light);
-  border-radius: var(--radius-md);
-  border: 2px solid var(--border-color);
-  transition: all 0.3s ease;
-}
-
-.stat-box:hover {
-  border-color: var(--primary-color);
-  box-shadow: var(--shadow-sm);
-}
-
-.stat-box h5 {
-  font-size: 18px;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-sm);
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--primary-light);
-}
-
-.stat-detail p {
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-}
-
-.stat-detail strong {
-  color: var(--accent-color);
-  font-weight: 700;
-}
-
-/* 合作伙伴样式 */
-.intro-section {
-  margin-bottom: var(--spacing-lg);
-  padding: var(--spacing-md);
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-left: 4px solid var(--primary-color);
-  border-radius: var(--radius-md);
-}
-
-.intro-text {
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--text-primary);
-  text-indent: 2em;
-}
-
-.section-subtitle {
-  font-size: 20px;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-  padding-left: 12px;
-  border-left: 4px solid var(--accent-color);
-}
-
-.partners-section,
-.areas-section {
-  margin-bottom: var(--spacing-lg);
-}
-
-.partners-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.partner-card {
-  text-align: center;
-  padding: var(--spacing-md);
-  background: var(--bg-light);
-  border-radius: var(--radius-md);
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-  cursor: pointer;
-}
-
-.partner-card:hover {
-  border-color: var(--primary-color);
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-md);
-}
-
-.partner-logo {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto var(--spacing-sm);
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  font-weight: 700;
-  color: white;
-  box-shadow: var(--shadow-sm);
-}
-
-.partner-name {
-  font-size: 16px;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-  line-height: 1.4;
-  font-weight: 600;
-}
-
-.areas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.area-item {
-  text-align: center;
-  padding: var(--spacing-md);
-  background: var(--bg-light);
-  border-radius: var(--radius-md);
-  transition: all 0.3s ease;
-}
-
-.area-item:hover {
-  background: white;
-  box-shadow: var(--shadow-md);
-  transform: translateY(-5px);
-}
-
-.area-icon {
-  font-size: 48px;
-  margin-bottom: var(--spacing-sm);
-}
-
-.area-item h5 {
-  font-size: 18px;
-  color: var(--primary-color);
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.area-item p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
 @media (max-width: 768px) {
-  .stats-overview {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .paper-header,
   .patent-header {
     flex-direction: column;
@@ -928,18 +752,6 @@ onMounted(() => {
 
   .achievement-desc {
     font-size: 15px;
-  }
-
-  .partners-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .areas-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .section-subtitle {
-    margin-top: var(--spacing-md);
   }
 }
 </style>

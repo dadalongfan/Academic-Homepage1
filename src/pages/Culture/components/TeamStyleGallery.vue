@@ -6,8 +6,19 @@
       <p>{{ $t('common.loading') }}</p>
     </div>
 
-    <!-- 遍历分类显示相册（只显示有图片的分类） -->
-    <div v-else v-for="category in categoriesWithImages" :key="category.id" class="section-card">
+    <div v-else class="page-layout">
+      <!-- 左侧导航栏 -->
+      <PageSideNav
+        v-if="navItems.length > 0"
+        :items="navItems"
+        :active-id="activeCategory"
+        @item-click="scrollToCategory"
+      />
+
+      <!-- 右侧内容区域 -->
+      <div class="page-content">
+        <!-- 遍历分类显示相册（只显示有图片的分类） -->
+        <div v-for="category in categoriesWithImages" :key="category.id" :id="`category-${category.id}`" class="section-card">
       <div class="section-header">
         <h3 class="subsection-title">{{ category.name }}</h3>
         <el-button
@@ -61,14 +72,16 @@
       </el-empty>
     </div>
 
-    <div v-else-if="categories.length === 0" class="section-card">
-      <el-empty
-        :description="$t('gallery.empty')"
-      >
-        <template #image>
-          <div class="empty-icon">📸</div>
-        </template>
-      </el-empty>
+        <div v-else-if="categories.length === 0" class="section-card">
+          <el-empty
+            :description="$t('gallery.empty')"
+          >
+            <template #image>
+              <div class="empty-icon">📸</div>
+            </template>
+          </el-empty>
+        </div>
+      </div>
     </div>
 
     <!-- 图片查看模态框 -->
@@ -109,13 +122,54 @@ import { ArrowUp, ArrowDown, ZoomIn, Loading } from '@element-plus/icons-vue'
 import { galleryApi } from '@/api'
 import { API_BASE_URL } from '@/config'
 import { useTranslation } from '@/utils/i18n/useTranslation'
+import PageSideNav from '@/components/PageSideNav.vue'
 
 const loading = ref(false)
 const imageModalVisible = ref(false)
 const selectedImage = ref({})
+const activeCategory = ref('')
 
 // 计算是否正在翻译
 const isTranslating = computed(() => isTranslatingCategories.value || isTranslatingImages.value)
+
+// 导航项
+const navItems = computed(() => {
+  return categoriesWithImages.value.map(category => ({
+    id: `category-${category.id}`,
+    label: category.name
+  }))
+})
+
+// 点击导航项滚动到对应分类
+const scrollToCategory = (id) => {
+  const targetElement = document.getElementById(id)
+  if (targetElement) {
+    targetElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+    activeCategory.value = id
+  }
+}
+
+// 监听页面滚动，高亮当前可见分类
+let scrollTimer = null
+const handleScroll = () => {
+  if (scrollTimer) return
+  scrollTimer = setTimeout(() => {
+    for (const category of categoriesWithImages.value) {
+      const element = document.getElementById(`category-${category.id}`)
+      if (element) {
+        const rect = element.getBoundingClientRect()
+        if (rect.top <= 150 && rect.bottom >= 150) {
+          activeCategory.value = `category-${category.id}`
+          break
+        }
+      }
+    }
+    scrollTimer = null
+  }, 100)
+}
 
 // 只返回有图片的分类
 const categoriesWithImages = computed(() => {
@@ -255,11 +309,14 @@ const handleKeydown = (event) => {
 onMounted(() => {
   loadGalleryData()
   document.addEventListener('keydown', handleKeydown)
+  // 添加滚动监听
+  window.addEventListener('scroll', handleScroll, { passive: true })
 })
 
 // 清理事件监听器
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -279,6 +336,25 @@ onUnmounted(() => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* 页面布局 */
+.page-layout {
+  display: flex;
+  gap: 24px;
+  position: relative;
+}
+
+.page-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .page-layout {
+    flex-direction: column;
   }
 }
 
@@ -363,6 +439,9 @@ onUnmounted(() => {
   box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
   cursor: pointer;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
 }
 
 .gallery-item:hover {
@@ -371,23 +450,28 @@ onUnmounted(() => {
 }
 
 .image-caption {
-  padding: 12px;
+  padding: 8px 12px;
   background: white;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   border-top: 1px solid var(--border-color);
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .image-date {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .image-container {
   position: relative;
-  padding-top: 75%; /* 4:3 比例 */
+  flex: 1;
   overflow: hidden;
 }
 
@@ -397,8 +481,9 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.3s ease;
+  background-color: #f5f5f5;
 }
 
 .image-overlay {

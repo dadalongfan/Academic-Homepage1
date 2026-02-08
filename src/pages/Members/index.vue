@@ -1,7 +1,5 @@
 <template>
   <div class="members-page" :class="{ 'page-loading': loading || isTranslating }">
-    <h2 class="section-title">{{ $t('members') }}</h2>
-
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
@@ -24,29 +22,17 @@
     </div>
 
     <template v-else>
-      <!-- 左侧固定导航菜单 -->
-      <div v-if="membersByRole.length > 0" class="side-nav">
-        <div class="side-nav-title">角色分类</div>
-        <ul class="side-nav-list">
-          <li
-            v-for="group in membersByRole"
-            :key="group.roleId"
-            class="side-nav-item"
-            :class="{ active: activeRole === group.roleId }"
-          >
-            <a
-              :href="group.roleId ? `#role-${group.roleId}` : '#role-unassigned'"
-              @click.prevent="scrollToRole(group.roleId)"
-              class="side-nav-link"
-            >
-              {{ group.roleName }}
-            </a>
-          </li>
-        </ul>
-      </div>
+      <div class="members-layout">
+        <!-- 左侧固定导航菜单 -->
+        <PageSideNav
+          v-if="navItems.length > 0"
+          :items="navItems"
+          :active-id="activeRole ? `role-${activeRole}` : 'role-unassigned'"
+          @item-click="handleNavClick"
+        />
 
-      <!-- 右侧内容区域 -->
-      <div class="members-content">
+        <!-- 右侧内容区域 -->
+        <div class="members-content">
         <!-- 按角色分组展示 -->
         <template v-for="group in membersByRole" :key="group.roleId">
         <div
@@ -145,17 +131,23 @@
           :description="$t('members.noData')"
           :image-size="200"
         />
+        </div>
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Loading, Message } from '@element-plus/icons-vue'
 import { membersApi } from '@/api'
 import { API_BASE_URL } from '@/config'
 import { useTranslation } from '@/utils/i18n/useTranslation'
+import { getBatchTranslation } from '@/utils/i18n/translationService'
+import PageSideNav from '@/components/PageSideNav.vue'
+
+const { locale } = useI18n()
 
 // 响应式数据
 const loading = ref(true)
@@ -207,6 +199,43 @@ const membersByRole = computed(() => {
 
   return groups
 })
+
+// 翻译后的角色名称映射
+const translatedRoleNames = ref({})
+
+// 翻译角色名称
+const translateRoleNames = async () => {
+  const roleNames = membersByRole.value.map(g => g.roleName)
+  if (roleNames.length === 0) return
+  
+  try {
+    // 根据当前语言确定翻译方向
+    const sourceLang = 'zh'
+    const targetLang = locale.value === 'en' ? 'en' : 'zh'
+    const translated = await getBatchTranslation(roleNames, sourceLang, targetLang)
+    const mapping = {}
+    membersByRole.value.forEach((group, index) => {
+      mapping[group.roleName] = translated[index] || group.roleName
+    })
+    translatedRoleNames.value = mapping
+  } catch (error) {
+    console.error('翻译角色名称失败:', error)
+  }
+}
+
+// 导航项
+const navItems = computed(() => {
+  return membersByRole.value.map(group => ({
+    id: group.roleId ? `role-${group.roleId}` : 'role-unassigned',
+    label: translatedRoleNames.value[group.roleName] || group.roleName
+  }))
+})
+
+// 处理导航点击
+const handleNavClick = (id) => {
+  const roleId = id === 'role-unassigned' ? null : parseInt(id.replace('role-', ''))
+  scrollToRole(roleId)
+}
 
 // 加载角色列表
 const loadRoles = async () => {
@@ -349,6 +378,7 @@ onMounted(() => {
   loadMembers().then(() => {
     nextTick(() => {
       scrollToRoleSection()
+      translateRoleNames() // 翻译角色名称
     })
   })
 
@@ -360,6 +390,11 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
+
+// 监听语言变化，重新翻译角色名称
+watch(locale, () => {
+  translateRoleNames()
+})
 </script>
 
 <style scoped>
@@ -368,81 +403,17 @@ onUnmounted(() => {
   visibility: hidden;
 }
 
-/* 左侧固定导航菜单 */
-.side-nav {
-  position: fixed;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 140px;
-  max-height: 70vh;
-  overflow-y: auto;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  padding: 16px 0;
-  z-index: 100;
-}
-
-.side-nav::-webkit-scrollbar {
-  width: 4px;
-}
-
-.side-nav::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 2px;
-}
-
-.side-nav::-webkit-scrollbar-thumb:hover {
-  background: #bbb;
-}
-
-.side-nav-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #999;
-  padding: 0 16px 12px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 8px;
-}
-
-.side-nav-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.side-nav-item {
-  padding: 0 8px;
-  margin: 4px 0;
-}
-
-.side-nav-link {
-  display: block;
-  padding: 10px 12px;
-  color: #666;
-  text-decoration: none;
-  font-size: 14px;
-  border-radius: 8px;
-  transition: all 0.3s;
-  cursor: pointer;
-}
-
-.side-nav-link:hover {
-  background: #f0f0f0;
-  color: var(--primary-color, #10b981);
-}
-
-.side-nav-item.active .side-nav-link {
-  background: linear-gradient(135deg, var(--primary-color, #10b981) 0%, var(--primary-light, #34d399) 100%);
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+/* 布局容器 */
+.members-layout {
+  display: flex;
+  gap: 24px;
+  position: relative;
 }
 
 /* 右侧内容区域 */
 .members-content {
-  margin-left: 160px;
+  flex: 1;
+  min-width: 0;
 }
 
 .loading-container {
@@ -458,43 +429,49 @@ onUnmounted(() => {
   margin: 20px 0;
 }
 
-.section-title {
-  text-align: center;
-  font-size: 36px;
-  color: var(--primary-color);
-  margin-bottom: 40px;
-  font-weight: 300;
+.section-card {
+  background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 28px;
+  border: 1px solid #e8ecf1;
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.06);
+  transition: all 0.3s ease;
 }
 
-.section-card {
-  background: white;
-  border-radius: 12px;
-  padding: 32px;
-  margin-bottom: 32px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.section-card:hover {
+  box-shadow: 0 8px 30px rgba(30, 58, 95, 0.1);
 }
 
 .subsection-title {
-  font-size: 24px;
-  color: var(--primary-color);
+  font-size: 22px;
+  color: #1e3a5f;
   margin-bottom: 24px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--accent-color);
+  border-bottom: 2px solid #2c5282;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
-/* 指导教师卡片 */
+/* 指导教师卡片 - 学术风 */
 .teacher-card {
   display: flex;
-  gap: 24px;
+  gap: 28px;
   align-items: flex-start;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .teacher-photo {
   flex-shrink: 0;
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 160px;
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.15);
+  border: 2px solid #fff;
 }
 
 .teacher-photo img,
@@ -505,13 +482,13 @@ onUnmounted(() => {
 }
 
 .avatar-placeholder {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 48px;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .teacher-info {
@@ -519,59 +496,68 @@ onUnmounted(() => {
 }
 
 .teacher-info h4 {
-  font-size: 24px;
-  color: #333;
-  margin: 0 0 8px 0;
+  font-size: 26px;
+  color: #1e3a5f;
+  margin: 0 0 10px 0;
+  font-weight: 600;
 }
 
 .teacher-title {
-  font-size: 16px;
-  color: var(--accent-color);
-  margin: 0 0 12px 0;
+  font-size: 15px;
+  color: #2c5282;
+  margin: 0 0 16px 0;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .teacher-desc {
-  color: #666;
-  margin: 4px 0;
+  color: #4a5568;
+  margin: 6px 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-/* 专任教师网格 */
+/* 专任教师网格 - 学术风 */
 .teachers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
 }
 
 .teacher-card-compact {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 20px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  padding: 24px;
   display: flex;
   gap: 16px;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  border: 1px solid #e8ecf1;
 }
 
 .teacher-card-compact:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 58, 95, 0.12);
+  transform: translateY(-4px);
+  border-color: #d0d7de;
 }
 
 .teacher-avatar-small {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent-color), #60a5fa);
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  font-weight: bold;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.2);
+  border: 2px solid #fff;
 }
 
 .teacher-avatar-small img {
@@ -582,65 +568,71 @@ onUnmounted(() => {
 
 .teacher-info-compact h5 {
   font-size: 18px;
-  color: #333;
+  color: #1e3a5f;
   margin: 0 0 6px 0;
+  font-weight: 600;
 }
 
 .teacher-role {
-  font-size: 14px;
-  color: var(--accent-color);
-  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #2c5282;
+  margin: 0 0 10px 0;
+  font-weight: 500;
 }
 
 .teacher-research {
   font-size: 13px;
-  color: #666;
+  color: #4a5568;
   margin: 4px 0;
   line-height: 1.5;
 }
 
 .teacher-email {
   font-size: 13px;
-  color: #666;
+  color: #64748b;
   margin: 8px 0 0 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
-/* 成员网格 */
+/* 成员网格 - 学术风 */
 .members-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 20px;
 }
 
 .member-card {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 20px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  padding: 24px 16px;
   text-align: center;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  border: 1px solid #e8ecf1;
 }
 
 .member-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 58, 95, 0.12);
+  transform: translateY(-4px);
+  border-color: #d0d7de;
 }
 
 .member-avatar {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 12px;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
   border-radius: 50%;
   overflow: hidden;
-  background: linear-gradient(135deg, #10b981, #34d399);
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.2);
+  border: 2px solid #fff;
 }
 
 .member-avatar img {
@@ -650,26 +642,23 @@ onUnmounted(() => {
 }
 
 .member-info h5 {
-  font-size: 16px;
-  color: #333;
-  margin: 0 0 4px 0;
+  font-size: 15px;
+  color: #1e3a5f;
+  margin: 0 0 6px 0;
+  font-weight: 600;
 }
 
 .member-research {
-  font-size: 13px;
-  color: #666;
+  font-size: 12px;
+  color: #4a5568;
   margin: 4px 0;
   line-height: 1.4;
 }
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
-  .side-nav {
-    display: none;
-  }
-
-  .members-content {
-    margin-left: 0;
+  .members-layout {
+    flex-direction: column;
   }
 }
 

@@ -23,11 +23,6 @@
     <template v-else-if="translatedJourney">
       <!-- 征途详情 -->
       <div class="journey-content">
-        <!-- 封面图 -->
-        <div v-if="translatedJourney.coverImage" class="detail-cover">
-          <img :src="getFullImageUrl(translatedJourney.coverImage)" :alt="translatedJourney.title" />
-        </div>
-
         <h1 class="journey-title">{{ translatedJourney.title }}</h1>
 
         <div class="journey-meta">
@@ -35,13 +30,6 @@
             <el-icon><Calendar /></el-icon>
             {{ formatDate(translatedJourney.createdAt) }}
           </span>
-          <el-tag v-if="translatedJourney.status === 1" type="success">上架</el-tag>
-          <el-tag v-else type="info">下架</el-tag>
-        </div>
-
-        <!-- 摘要 -->
-        <div v-if="translatedJourney.summary" class="journey-summary">
-          <p>{{ translatedJourney.summary }}</p>
         </div>
 
         <!-- 富文本内容 -->
@@ -200,18 +188,6 @@ onMounted(() => {
   padding: 40px;
 }
 
-.detail-cover {
-  margin-bottom: var(--spacing-lg);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.detail-cover img {
-  width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-}
-
 .journey-title {
   font-family: var(--font-serif);
   font-size: 32px;
@@ -219,11 +195,13 @@ onMounted(() => {
   color: var(--text-primary);
   margin: 0 0 var(--spacing-md) 0;
   line-height: 1.4;
+  text-align: center;
 }
 
 .journey-meta {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-md);
@@ -236,20 +214,6 @@ onMounted(() => {
   gap: 6px;
   color: var(--text-secondary);
   font-size: 14px;
-}
-
-.journey-summary {
-  background: var(--bg-color);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-lg);
-}
-
-.journey-summary p {
-  margin: 0;
-  font-size: 16px;
-  color: var(--text-secondary);
-  line-height: 1.8;
 }
 
 .journey-body {
@@ -334,10 +298,6 @@ onMounted(() => {
 
   .journey-title {
     font-size: 24px;
-  }
-
-  .detail-cover img {
-    max-height: 250px;
   }
 
   .journey-meta {

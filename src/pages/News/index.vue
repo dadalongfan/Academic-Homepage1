@@ -1,7 +1,5 @@
 <template>
   <div class="news-page">
-    <h2 class="page-title">{{ $t('news') }}</h2>
-
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
@@ -34,8 +32,8 @@
           @click="goToDetail(news.id)"
         >
           <div class="news-date-box">
-            <div class="news-month">{{ getMonth(news.publishDate) }}</div>
-            <div class="news-year">{{ getYear(news.publishDate) }}</div>
+            <div class="news-day">{{ getDay(news.publishDate) }}</div>
+            <div class="news-month-year">{{ getYearMonth(news.publishDate) }}</div>
           </div>
 
           <div class="news-content-wrapper">
@@ -116,15 +114,17 @@ const filteredNews = computed(() => {
 })
 
 // 辅助函数
-const getYear = (dateStr) => {
-  if (!dateStr) return ''
-  return new Date(dateStr).getFullYear().toString()
+const getDay = (dateStr) => {
+  if (!dateStr) return '--'
+  return String(new Date(dateStr).getDate()).padStart(2, '0')
 }
 
-const getMonth = (dateStr) => {
-  if (!dateStr) return ''
-  const month = new Date(dateStr).getMonth() + 1
-  return month.toString().padStart(2, '0')
+const getYearMonth = (dateStr) => {
+  if (!dateStr) return '----'
+  const date = new Date(dateStr)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return `${year}-${month}`
 }
 
 const getCategoryType = (category) => {
@@ -243,14 +243,6 @@ onMounted(() => {
   margin: 20px 0;
 }
 
-.page-title {
-  text-align: center;
-  font-size: 36px;
-  color: var(--primary-color);
-  margin-bottom: 40px;
-  font-weight: 300;
-}
-
 .year-filter {
   max-width: 900px;
   margin: 0 auto 20px;
@@ -301,12 +293,13 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.news-month {
-  font-size: 18px;
+.news-day {
+  font-size: 22px;
+  font-weight: bold;
 }
 
-.news-year {
-  font-size: 14px;
+.news-month-year {
+  font-size: 11px;
   opacity: 0.9;
 }
 

@@ -1,7 +1,5 @@
 <template>
   <div class="gallery-page">
-    <h2 class="section-title">{{ $t('gallery.title') }}</h2>
-
     <!-- 翻译状态 -->
     <div v-if="isTranslating" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>

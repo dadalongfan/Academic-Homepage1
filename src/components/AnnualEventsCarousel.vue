@@ -7,7 +7,7 @@
     <!-- 左侧装饰 -->
     <div class="carousel-header">
       <span class="header-icon">📅</span>
-      <span class="header-title">{{ currentYear }}年度大事件</span>
+      <span class="header-title">{{ currentYear }}{{ $t('home.annualEvents') }}</span>
     </div>
 
     <!-- 滚动容器 -->

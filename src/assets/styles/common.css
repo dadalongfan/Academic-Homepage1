@@ -1,8 +1,8 @@
 /* 通用样式类 */
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 40px;
 }
 
 .card {
@@ -51,7 +51,7 @@
 /* 响应式 */
 @media (max-width: 768px) {
   .container {
-    padding: 0 16px;
+    padding: 0 20px;
   }
 
   .section-title {

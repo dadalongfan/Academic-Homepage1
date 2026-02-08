@@ -65,7 +65,7 @@
           
           <!-- 团队成员下拉菜单 -->
           <div
-            v-if="memberRoles.length > 0"
+            v-if="translatedMemberRoles.length > 0"
             class="nav-item has-dropdown"
             :class="{ active: currentPage === 'members' }"
             @mouseenter="showMembersDropdown = true"
@@ -74,9 +74,8 @@
             <a href="./members.html" class="nav-link">{{ $t('members') }}</a>
             <transition name="dropdown">
               <ul v-show="showMembersDropdown" class="dropdown-menu">
-                <li><a href="./members.html" class="dropdown-item">{{ $t('members.all') }}</a></li>
-                <li v-for="role in memberRoles" :key="role.id">
-                  <a :href="`./members.html?role=${role.id}`" class="dropdown-item">{{ role.name }}</a>
+                <li v-for="role in translatedMemberRoles" :key="role.id">
+                  <a :href="`./members.html?role=${role.id}`" class="dropdown-item">{{ getTranslatedRoleName(role) }}</a>
                 </li>
               </ul>
             </transition>
@@ -93,10 +92,10 @@
             <a href="./publications.html" class="nav-link">{{ $t('publications') }}</a>
             <transition name="dropdown">
               <ul v-show="showPublicationsDropdown" class="dropdown-menu">
-                <li><a href="./publications.html" class="dropdown-item">研究方向</a></li>
-                <li><a href="./publications.html?section=projects" class="dropdown-item">代表项目</a></li>
-                <li><a href="./publications.html?section=patents" class="dropdown-item">代表专利</a></li>
-                <li><a href="./publications.html?section=papers" class="dropdown-item">代表论文</a></li>
+                <li><a href="./publications.html" class="dropdown-item">{{ $t('publications.researchDirections') }}</a></li>
+                <li><a href="./publications.html?section=projects" class="dropdown-item">{{ $t('publications.projects') }}</a></li>
+                <li><a href="./publications.html?section=patents" class="dropdown-item">{{ $t('publications.patents') }}</a></li>
+                <li><a href="./publications.html?section=papers" class="dropdown-item">{{ $t('publications.papers') }}</a></li>
               </ul>
             </transition>
           </div>
@@ -142,10 +141,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import i18n from '../utils/i18n'
 import { newsApi, membersApi } from '../api'
+import { getBatchTranslation } from '../utils/i18n/translationService'
 
 const currentPage = ref('')
 const { locale } = useI18n()
@@ -160,8 +160,6 @@ const showPublicationsDropdown = ref(false)
 
 // 新闻年份列表
 const newsYears = ref([])
-// 成员角色列表
-const memberRoles = ref([])
 
 // 监听语言变化，更新currentLocale
 watch(locale, (newValue) => {
@@ -194,20 +192,23 @@ const loadNewsYears = async () => {
   }
 }
 
-// 加载成员角色（只显示有成员的角色）
-const loadMemberRoles = async () => {
+// 翻译后的角色列表
+const translatedMemberRoles = ref([])
+
+// 加载并翻译成员角色
+const loadAndTranslateMemberRoles = async () => {
   try {
     // 先加载所有角色
     const rolesRes = await membersApi.getRoles()
     if (rolesRes.code !== 200 || !rolesRes.data) {
-      memberRoles.value = []
+      translatedMemberRoles.value = []
       return
     }
 
     // 加载所有成员
     const membersRes = await membersApi.getList()
     if (membersRes.code !== 200 || !membersRes.data) {
-      memberRoles.value = []
+      translatedMemberRoles.value = []
       return
     }
 
@@ -215,20 +216,39 @@ const loadMemberRoles = async () => {
     const roleCounts = {}
     membersRes.data.forEach(member => {
       if (member.roleId) {
-        // 统一转换为字符串进行比较
         const roleId = String(member.roleId)
         roleCounts[roleId] = (roleCounts[roleId] || 0) + 1
       }
     })
 
     // 只保留有成员的角色
-    memberRoles.value = rolesRes.data
+    const rolesWithMembers = rolesRes.data
       .filter(role => roleCounts[String(role.id)] > 0)
       .sort((a, b) => a.sortOrder - b.sortOrder)
+
+    // 提取角色名称进行批量翻译
+    const roleNames = rolesWithMembers.map(role => role.name)
+    // 根据当前语言确定翻译方向
+    // 如果当前是中文，源语言是中文，目标语言也是中文（不翻译）
+    // 如果当前是英文，源语言是中文，目标语言是英文
+    const sourceLang = 'zh'
+    const targetLang = currentLocale.value === 'en' ? 'en' : 'zh'
+    const translatedNames = await getBatchTranslation(roleNames, sourceLang, targetLang)
+
+    // 合并翻译后的名称
+    translatedMemberRoles.value = rolesWithMembers.map((role, index) => ({
+      ...role,
+      displayName: translatedNames[index] || role.name
+    }))
   } catch (error) {
     console.error('加载成员角色失败:', error)
-    memberRoles.value = []
+    translatedMemberRoles.value = []
   }
+}
+
+// 获取翻译后的角色名称
+const getTranslatedRoleName = (role) => {
+  return role.displayName || role.name
 }
 
 onMounted(() => {
@@ -262,7 +282,12 @@ onMounted(() => {
 
   // 加载数据
   loadNewsYears()
-  loadMemberRoles()
+  loadAndTranslateMemberRoles()
+})
+
+// 监听语言变化，重新翻译成员角色
+watch(locale, () => {
+  loadAndTranslateMemberRoles()
 })
 </script>
 
@@ -282,8 +307,9 @@ onMounted(() => {
 }
 
 .banner-wrapper {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 40px;
   display: flex;
   align-items: stretch;
 }
@@ -410,9 +436,9 @@ onMounted(() => {
 }
 
 .header-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 40px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -429,14 +455,15 @@ onMounted(() => {
 .nav-item {
   color: white;
   text-decoration: none;
-  padding: 12px 24px;
+  padding: 12px 20px;
   font-size: 16px;
   font-weight: 500;
   transition: all 0.3s ease;
   white-space: nowrap;
   flex: 1;
   text-align: center;
-  max-width: 150px;
+  min-width: 120px;
+  max-width: 200px;
   position: relative;
 }
 
@@ -525,8 +552,10 @@ onMounted(() => {
   }
 
   .nav-item {
-    padding: 10px 16px;
+    padding: 10px 12px;
     font-size: 14px;
+    min-width: auto;
+    max-width: none;
   }
   
   .dropdown-menu {

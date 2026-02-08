@@ -49,9 +49,9 @@ body {
 
 .main-content {
   flex: 1;
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 40px;
   width: 100%;
 }
 </style>

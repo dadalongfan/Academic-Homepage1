@@ -4,22 +4,56 @@
     @mouseenter="pauseAutoScroll"
     @mouseleave="resumeAutoScroll"
   >
-    <!-- 图片网格容器 -->
-    <div class="carousel-grid">
-      <div
-        v-for="image in currentImages"
-        :key="image.id"
-        class="carousel-item"
-        @click="openImageModal(image)"
-      >
-        <img
-          :src="image.imageUrl"
-          :alt="image.title"
-          loading="lazy"
-          @error="handleImageError"
-        />
-        <div class="item-overlay">
-          <el-icon><ZoomIn /></el-icon>
+    <!-- 上面：团队风采 - 2秒切换 -->
+    <div class="carousel-section">
+      <div class="carousel-header">
+        <h3 class="carousel-title">{{ $t('home.teamStyle') }}</h3>
+        <a href="./gallery.html" class="carousel-more">{{ $t('home.more') }} ></a>
+      </div>
+      <div class="carousel-grid single-row">
+        <div
+          v-for="image in currentGalleryImages"
+          :key="image.id"
+          class="carousel-item"
+          @click="openImageModal(image)"
+        >
+          <img
+            :src="image.imageUrl"
+            :alt="image.title"
+            loading="lazy"
+            @error="handleImageError"
+          />
+          <div class="item-overlay">
+            <el-icon><ZoomIn /></el-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下面：研途趣事 - 横向滚动 -->
+    <div class="carousel-section">
+      <div class="carousel-header">
+        <h3 class="carousel-title">{{ $t('home.dailyLife') }}</h3>
+        <a href="./daily.html" class="carousel-more">{{ $t('home.more') }} ></a>
+      </div>
+      <div class="scroll-container" ref="scrollContainer">
+        <div class="scroll-track" :style="scrollTrackStyle">
+          <div
+            v-for="image in scrollImages"
+            :key="image.id"
+            class="scroll-item"
+            @click="openImageModal(image)"
+          >
+            <img
+              :src="image.imageUrl"
+              :alt="image.title"
+              loading="lazy"
+              @error="handleImageError"
+            />
+            <div class="item-overlay">
+              <el-icon><ZoomIn /></el-icon>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -30,7 +64,7 @@
     </div>
 
     <!-- 空状态 -->
-    <div v-if="!loading && allImages.length === 0" class="carousel-empty">
+    <div v-if="!loading && galleryImages.length === 0 && momentImages.length === 0" class="carousel-empty">
       <el-empty :image-size="80" />
     </div>
 
@@ -51,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ZoomIn, Loading } from '@element-plus/icons-vue'
 import { galleryApi, dailyMomentApi } from '../api'
 import { getFullFileUrl } from '../utils/api'
@@ -60,16 +94,58 @@ const loading = ref(false)
 const imageModalVisible = ref(false)
 const selectedImage = ref({})
 
-const allImages = ref([])
-const currentImages = ref([])
-const currentIndex = ref(0)
-const itemsPerPage = 4 // 2列×2行=4张
+const galleryImages = ref([])
+const momentImages = ref([])
 
-let scrollInterval = null
-const scrollSpeed = 3000
+// 团队风采自动切换
+const galleryIndex = ref(0)
+let galleryInterval = null
+const gallerySwitchSpeed = 2000 // 2秒切换一次
 
-// 获取并合并图片数据
-const fetchAndMergeImages = async () => {
+// 当前显示的团队风采图片（2张）
+const currentGalleryImages = computed(() => {
+  if (galleryImages.value.length <= 2) return galleryImages.value
+  const start = galleryIndex.value
+  const end = start + 2
+  if (end <= galleryImages.value.length) {
+    return galleryImages.value.slice(start, end)
+  } else {
+    // 循环到开头
+    const tail = galleryImages.value.slice(start)
+    const head = galleryImages.value.slice(0, end - galleryImages.value.length)
+    return [...tail, ...head]
+  }
+})
+
+// 启动团队风采自动切换
+const startGallerySwitch = () => {
+  if (galleryInterval) clearInterval(galleryInterval)
+  if (galleryImages.value.length > 2) {
+    galleryInterval = setInterval(() => {
+      if (!isPaused) {
+        galleryIndex.value = (galleryIndex.value + 2) % galleryImages.value.length
+      }
+    }, gallerySwitchSpeed)
+  }
+}
+
+// 滚动相关
+const scrollContainer = ref(null)
+const scrollPosition = ref(0)
+const scrollSpeed = 1 // 像素/帧
+let scrollAnimationId = null
+let isPaused = false
+
+// 计算滚动图片（复制一份实现无缝循环）
+const scrollImages = computed(() => {
+  // 如果图片少于2张，直接返回
+  if (momentImages.value.length < 2) return momentImages.value
+  // 复制一份实现无缝循环
+  return [...momentImages.value, ...momentImages.value]
+})
+
+// 获取图片数据
+const fetchImages = async () => {
   loading.value = true
   try {
     // 并行获取两个API的数据
@@ -78,27 +154,24 @@ const fetchAndMergeImages = async () => {
       dailyMomentApi.getList()
     ])
 
-    // 统一数据格式
-    const galleryImages = (galleryRes.data || []).map(img => ({
+    // 处理团队风采图片
+    const galleryData = (galleryRes.data || []).map(img => ({
       id: `gallery-${img.id}`,
       imageUrl: getFullFileUrl(img.imageUrl),
-      title: img.description || '团队风采',
-      source: 'gallery'
+      title: img.description || '团队风采'
     }))
 
-    const momentImages = (momentsRes?.data || []).map(img => ({
+    // 处理研途趣事图片
+    const momentData = (momentsRes?.data || []).map(img => ({
       id: `moment-${img.id}`,
       imageUrl: getFullFileUrl(img.image),
-      title: img.title || '研途趣事',
-      source: 'moment'
+      title: img.title || '研途趣事'
     }))
 
-    // 合并并随机打乱
-    const merged = [...galleryImages, ...momentImages]
-    allImages.value = shuffleArray(removeDuplicates(merged))
+    // 分别存储，各取前10个用于循环
+    galleryImages.value = removeDuplicates(galleryData).slice(0, 10)
+    momentImages.value = removeDuplicates(momentData).slice(0, 10)
 
-    // 初始化显示图片
-    updateCurrentImages()
   } catch (error) {
     console.error('获取图片数据失败:', error)
   } finally {
@@ -117,59 +190,49 @@ const removeDuplicates = (images) => {
   })
 }
 
-// 数组随机打乱（Fisher-Yates 算法）
-const shuffleArray = (array) => {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+// 滚动轨道样式
+const scrollTrackStyle = computed(() => ({
+  transform: `translateX(-${scrollPosition.value}px)`
+}))
+
+// 开始滚动动画
+const startScroll = () => {
+  if (scrollAnimationId || isPaused) return
+  
+  const animate = () => {
+    if (isPaused || !momentImages.value.length) return
+    
+    // 获取单张图片宽度（假设每张图片宽度相同）
+    const itemWidth = scrollContainer.value?.offsetWidth / 2 || 150
+    const totalWidth = itemWidth * momentImages.value.length
+    
+    // 更新位置
+    scrollPosition.value += scrollSpeed
+    
+    // 当滚动超过一半时，重置到开头（实现无缝循环）
+    if (scrollPosition.value >= totalWidth) {
+      scrollPosition.value = 0
+    }
+    
+    scrollAnimationId = requestAnimationFrame(animate)
   }
-  return shuffled
+  
+  scrollAnimationId = requestAnimationFrame(animate)
 }
 
-// 更新当前显示的图片
-const updateCurrentImages = () => {
-  if (allImages.value.length === 0) return
-
-  const start = currentIndex.value
-  const end = start + itemsPerPage
-
-  if (end <= allImages.value.length) {
-    currentImages.value = allImages.value.slice(start, end)
-  } else {
-    // 循环到开头
-    const tail = allImages.value.slice(start)
-    const head = allImages.value.slice(0, end - allImages.value.length)
-    currentImages.value = [...tail, ...head]
-  }
-}
-
-// 滚动到下一组
-const scrollToNext = () => {
-  if (allImages.value.length <= itemsPerPage) return
-  currentIndex.value = (currentIndex.value + itemsPerPage) % allImages.value.length
-  updateCurrentImages()
-}
-
-// 自动滚动控制
-const startAutoScroll = () => {
-  if (scrollInterval) clearInterval(scrollInterval)
-  if (allImages.value.length > itemsPerPage) {
-    scrollInterval = setInterval(scrollToNext, scrollSpeed)
-  }
-}
-
+// 暂停滚动
 const pauseAutoScroll = () => {
-  if (scrollInterval) {
-    clearInterval(scrollInterval)
-    scrollInterval = null
+  isPaused = true
+  if (scrollAnimationId) {
+    cancelAnimationFrame(scrollAnimationId)
+    scrollAnimationId = null
   }
 }
 
+// 恢复滚动
 const resumeAutoScroll = () => {
-  if (!scrollInterval && allImages.value.length > itemsPerPage) {
-    startAutoScroll()
-  }
+  isPaused = false
+  startScroll()
 }
 
 // 图片弹窗
@@ -193,12 +256,22 @@ const handleImageError = (event) => {
 
 // 生命周期
 onMounted(() => {
-  fetchAndMergeImages()
-  startAutoScroll()
+  fetchImages().then(() => {
+    // 数据加载完成后启动动画
+    setTimeout(() => {
+      startGallerySwitch()
+      startScroll()
+    }, 500)
+  })
 })
 
 onUnmounted(() => {
-  pauseAutoScroll()
+  if (scrollAnimationId) {
+    cancelAnimationFrame(scrollAnimationId)
+  }
+  if (galleryInterval) {
+    clearInterval(galleryInterval)
+  }
 })
 </script>
 
@@ -210,42 +283,136 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 分区块 */
+.carousel-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.carousel-section:first-child {
+  border-bottom: 1px solid #e8ecf1;
+}
+
+/* 标题栏 */
+.carousel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 12px;
+  border-bottom: 2px solid #2c5282;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.carousel-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3a5f;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.carousel-more {
+  font-size: 13px;
+  color: #2c5282;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.carousel-more:hover {
+  color: #1e3a5f;
+  transform: translateX(2px);
 }
 
 .carousel-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 8px;
-  height: 100%;
-  padding: 8px;
+  grid-template-rows: 1fr;
+  gap: 10px;
+  flex: 1;
+  padding: 8px 12px 12px;
   box-sizing: border-box;
+}
+
+.carousel-grid.single-row {
+  grid-template-rows: 1fr;
+}
+
+/* 横向滚动容器 */
+.scroll-container {
+  flex: 1;
+  overflow: hidden;
+  padding: 8px 12px 12px;
+  position: relative;
+}
+
+.scroll-track {
+  display: flex;
+  gap: 10px;
+  height: 100%;
+  will-change: transform;
+}
+
+.scroll-item {
+  flex-shrink: 0;
+  width: calc(50% - 5px);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #f5f7fa;
+  border: 1px solid #e8ecf1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.scroll-item:hover img {
+  transform: scale(1.05);
 }
 
 .carousel-item {
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   cursor: pointer;
-  background: var(--bg-light);
+  background: #f5f7fa;
   transition: all 0.3s ease;
-  aspect-ratio: 1;
-}
-
-.carousel-item:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-md);
+  border: 1px solid #e8ecf1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .carousel-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
   transition: transform 0.3s ease;
 }
 
+.carousel-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
 .carousel-item:hover img {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .item-overlay {
@@ -262,7 +429,8 @@ onUnmounted(() => {
   transition: opacity 0.3s ease;
 }
 
-.carousel-item:hover .item-overlay {
+.carousel-item:hover .item-overlay,
+.scroll-item:hover .item-overlay {
   opacity: 1;
 }
 
@@ -301,23 +469,35 @@ onUnmounted(() => {
 /* 响应式 */
 @media (max-width: 968px) {
   .image-scroll-carousel {
-    height: 300px;
+    height: 400px;
+  }
+
+  .carousel-header {
+    padding: 10px 12px 6px;
+  }
+
+  .carousel-title {
+    font-size: 15px;
   }
 
   .carousel-grid {
-    gap: 6px;
-    padding: 6px;
+    gap: 8px;
+    padding: 6px 10px 10px;
   }
 
   .item-overlay .el-icon {
-    font-size: 24px;
+    font-size: 22px;
   }
 }
 
 @media (max-width: 576px) {
+  .image-scroll-carousel {
+    height: 320px;
+  }
+
   .carousel-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
   }
 }
 </style>

@@ -1,7 +1,5 @@
 <template>
   <div class="leader-intro-page">
-    <h2 class="section-title">负责人简介</h2>
-
     <!-- 翻译状态 -->
     <div v-if="isTranslating" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
@@ -23,13 +21,13 @@
 
       <!-- 个人简介 -->
       <div v-if="displayLeaderInfo.introduction" class="section-card">
-        <h3 class="subsection-title">个人简介</h3>
+        <h3 class="subsection-title">{{ $t('个人简介') }}</h3>
         <div class="intro-content" v-html="displayLeaderInfo.introduction"></div>
       </div>
 
       <!-- 教育经历 -->
       <div v-if="educationList.length > 0" class="section-card">
-        <h3 class="subsection-title">教育经历</h3>
+        <h3 class="subsection-title">{{ $t('教育经历') }}</h3>
         <el-timeline class="timeline">
           <el-timeline-item
             v-for="(edu, index) in educationList"
@@ -48,7 +46,7 @@
 
       <!-- 工作经历 -->
       <div v-if="workList.length > 0" class="section-card">
-        <h3 class="subsection-title">工作经历</h3>
+        <h3 class="subsection-title">{{ $t('工作经历') }}</h3>
         <el-timeline class="timeline">
           <el-timeline-item
             v-for="(work, index) in workList"

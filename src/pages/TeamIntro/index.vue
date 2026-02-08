@@ -1,7 +1,5 @@
 <template>
   <div class="team-intro-page">
-    <h2 class="section-title">课题组简介</h2>
-
     <!-- 翻译状态 -->
     <div v-if="isTranslating" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
@@ -12,7 +10,7 @@
     <div v-else class="section-card">
       <div v-if="displayLeaderInfo.teamIntroduction" class="team-content" v-html="displayLeaderInfo.teamIntroduction"></div>
       <div v-else class="empty-content">
-        <el-empty description="暂无内容" :image-size="200" />
+        <el-empty :description="$t('暂无内容')" :image-size="200" />
       </div>
     </div>
   </div>

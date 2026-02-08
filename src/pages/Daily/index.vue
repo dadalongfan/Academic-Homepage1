@@ -1,7 +1,5 @@
 <template>
   <div class="daily-page">
-    <h2 class="section-title">{{ $t('daily.title') }}</h2>
-
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
@@ -164,28 +162,6 @@ onUnmounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.section-title {
-  font-family: var(--font-serif);
-  font-size: 32px;
-  color: var(--primary-color);
-  text-align: center;
-  margin-bottom: var(--spacing-lg);
-  position: relative;
-  padding-bottom: 16px;
-}
-
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-  border-radius: 2px;
 }
 
 .loading-container {
